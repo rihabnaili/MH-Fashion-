@@ -1,0 +1,252 @@
+# MH Fashion - E-commerce Platform
+
+A modern, multilingual e-commerce platform built with Next.js 14, featuring French and Arabic language support with RTL layout.
+
+## 🚀 Features
+
+- **Multilingual Support**: French (LTR) and Arabic (RTL) with automatic language detection
+- **Modern UI/UX**: Built with Tailwind CSS and Framer Motion
+- **Responsive Design**: Mobile-first approach with tablet and desktop optimization
+- **Image Optimization**: Next.js Image component for optimal performance
+- **E-commerce Ready**: Product catalog, categories, and shopping cart functionality
+- **Performance Optimized**: Next.js 14 with App Router and optimized builds
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 14.1.0 with App Router
+- **Language**: TypeScript/JavaScript
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: React Context API + Redux Toolkit
+- **Internationalization**: Custom i18n system with JSON files
+- **UI Components**: Headless UI, Lucide React icons
+- **Animations**: Framer Motion
+- **Deployment**: Firebase hosting ready
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── (public)/           # Public routes
+│   ├── components/          # Reusable components
+│   │   ├── Icons/          # Icon components
+│   │   ├── layouts/        # Layout components
+│   │   ├── multiLanguage/  # Language components
+│   │   ├── sections/       # Page sections
+│   │   └── ui/             # UI components
+│   ├── context/            # React Context providers
+│   ├── hooks/              # Custom React hooks
+│   ├── i18n/               # Translation files
+│   │   ├── backend/        # Backend translations
+│   │   └── frontend/       # Frontend translations
+│   └── globals.css         # Global styles
+├── public/                  # Static assets
+│   └── home-media/         # Product images
+└── tailwind.config.ts      # Tailwind configuration
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm, yarn, or pnpm
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd front
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
+
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🖼️ Adding Your Images
+
+### 1. Prepare Your Images
+
+- **Hero Section**: Place your main hero image in `public/home-media/`
+- **Category Images**: Add category-specific images in `public/home-media/`
+- **Product Images**: Organize product images by category
+
+### 2. Update Image Paths
+
+Update the image paths in these files:
+
+```javascript
+// src/app/components/sections/CategoriesSection.js
+const categoryImages = {
+  ensembles: "/home-media/your-ensembles-image.jpg",
+  chemises: "/home-media/your-chemises-image.jpg",
+  // ... other categories
+};
+
+// src/app/components/sections/ProductTabs.js
+const featuredProducts = [
+  {
+    // ... other properties
+    image: "/home-media/your-product-image.jpg",
+  },
+];
+```
+
+### 3. Image Requirements
+
+- **Format**: JPG, PNG, WebP
+- **Size**: Recommended 800x800px for products, 1200x800px for hero
+- **Optimization**: Next.js will automatically optimize images
+
+## 🌍 Language Configuration
+
+### Adding New Languages
+
+1. **Create translation files** in `src/app/i18n/frontend/` and `src/app/i18n/backend/`
+2. **Update LanguageContext** to include the new language
+3. **Add language toggle** in the header
+
+### Translation Structure
+
+```json
+{
+  "key": "Translation text",
+  "nested": {
+    "key": "Nested translation"
+  }
+}
+```
+
+## 🎨 Customization
+
+### Colors
+
+Update the color palette in `tailwind.config.ts`:
+
+```typescript
+colors: {
+  black: "#323232ff",
+  white: "#F8F9FA",
+  gold: "rgb(177, 134, 65)",
+  offwhite: {
+    DEFAULT: "#F2EEE2",
+    // ... other shades
+  },
+}
+```
+
+### Fonts
+
+Customize fonts in `src/app/layout.tsx`:
+
+```typescript
+const customFont = GoogleFont({
+  subsets: ["latin"],
+  variable: "--font-custom",
+  weight: ["400", "500", "600"],
+});
+```
+
+## 📱 Responsive Design
+
+The platform is built with a mobile-first approach:
+
+- **Mobile**: 320px - 768px
+- **Tablet**: 768px - 1024px  
+- **Desktop**: 1024px+
+- **Large Desktop**: 1280px+
+
+## 🚀 Deployment
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+### Deploy to Firebase
+
+```bash
+npm run deploy
+```
+
+### Environment Variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_API_URL=your-api-url
+NEXT_PUBLIC_FIREBASE_CONFIG=your-firebase-config
+```
+
+## 🔧 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run clean` - Clean build artifacts
+
+## 📊 Performance
+
+- **Lighthouse Score**: 90+ (Performance, Accessibility, Best Practices, SEO)
+- **Core Web Vitals**: Optimized for LCP, FID, and CLS
+- **Image Optimization**: Automatic WebP conversion and responsive images
+- **Bundle Analysis**: Optimized imports and tree shaking
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Translation not loading**: Check file paths in LanguageContext
+2. **Images not displaying**: Verify image paths and Next.js config
+3. **Build errors**: Clear `.next` folder and reinstall dependencies
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+DEBUG=* npm run dev
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 📞 Support
+
+For support and questions:
+- Email: contact@mhfashion.tn
+- Phone: +216 XX XXX XXX
+
+---
+
+**Built with ❤️ using Next.js and Tailwind CSS**
