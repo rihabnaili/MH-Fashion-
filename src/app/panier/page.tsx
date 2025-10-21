@@ -34,8 +34,8 @@ export default function CartPage() {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!phoneNumber.trim()) {
+    // Check if phone number is filled and only numbers
+    if (!phoneNumber.trim() || !/^[0-9]+$/.test(phoneNumber.trim())) {
       alert(t("pleaseEnterPhone"));
       return;
     }
@@ -306,7 +306,9 @@ export default function CartPage() {
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder={t("phoneNumber")}
                     required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-black text-base"
+               inputMode="numeric"
+               pattern="[0-9]*"
+               className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-black text-base"
                   />
                 </div>
 
