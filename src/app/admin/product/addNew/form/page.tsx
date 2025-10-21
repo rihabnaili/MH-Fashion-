@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
+import { useTranslations } from '@/app/hooks/useTranslations';
 import { LogOut } from 'lucide-react';
 import ImageUploadManager from '@/app/components/admin/ImageUploadManager';
 
@@ -41,6 +42,7 @@ export default function AddNewProductForm() {
   const { lang } = useLanguage();
   const { logout } = useAdminAuth();
   const router = useRouter();
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({

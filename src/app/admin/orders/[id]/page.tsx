@@ -8,6 +8,7 @@ import { LogOut, ArrowLeft, Edit, Save, X, Package, Phone, User, Calendar, Dolla
 import ProductImageGallery from '@/app/components/ui/ProductImageGallery';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from '@/app/hooks/useTranslations';
 
 interface OrderItem {
   productId: string;
@@ -55,6 +56,7 @@ export default function OrderDetail() {
   const router = useRouter();
   const { lang } = useLanguage();
   const { logout } = useAdminAuth();
+  const t = useTranslations();
   
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);

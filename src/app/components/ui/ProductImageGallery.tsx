@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -12,6 +13,7 @@ interface ProductImageGalleryProps {
 
 export default function ProductImageGallery({ images, productName, className = '' }: ProductImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { lang } = useLanguage();
 
   if (!images || images.length === 0) {
     return (

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Trash2, Eye } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from '@/app/hooks/useTranslations';
 
 interface ImageUploadManagerProps {
   images: File[];
@@ -19,6 +20,7 @@ export default function ImageUploadManager({
   onExistingImagesChange,
   maxImages = 10
 }: ImageUploadManagerProps) {
+  const t = useTranslations();
   const [dragActive, setDragActive] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
