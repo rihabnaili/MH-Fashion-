@@ -119,7 +119,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     if (autoFetch) {
       fetchProducts(1);
     }
-  }, [category, limit, search, sortBy, sortOrder, autoFetch]);
+  }, [category, limit, search, sortBy, sortOrder, autoFetch, fetchProducts]);
 
   return {
     products,

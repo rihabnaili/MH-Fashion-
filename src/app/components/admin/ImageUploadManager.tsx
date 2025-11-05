@@ -154,9 +154,10 @@ export default function ImageUploadManager({
             {images.map((image, index) => (
               <div key={`new-${index}`} className="relative group">
                 <div className="w-full h-20 sm:h-24 lg:h-28 bg-gray-100 rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src={URL.createObjectURL(image)}
                     alt={`${t("newImage")} ${index + 1}`}
+                    fill
                     className="w-full h-full object-cover"
                   />
                 </div>

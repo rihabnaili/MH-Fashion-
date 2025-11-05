@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
+import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import ProductImageGallery from './ProductImageGallery';
@@ -87,9 +88,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       <div className="flex items-center space-x-3 p-3">
                         <div className="flex-shrink-0">
                           <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden">
-                            <img
+                            <Image
                               src={item.images[0] || '/home-media/set.jpg'}
                               alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
+                              width={56}
+                              height={56}
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -152,9 +155,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-                          <img
+                          <Image
                             src={item.images[0] || '/home-media/set.jpg'}
                             alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
                           />
                         </div>

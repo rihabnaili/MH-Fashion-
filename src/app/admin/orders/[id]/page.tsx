@@ -66,10 +66,6 @@ export default function OrderDetail() {
   const [editedNotes, setEditedNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchOrder();
-  }, [params.id]);
-
   const fetchOrder = async () => {
     try {
       const response = await fetch(`/api/orders/${params.id}`);
@@ -94,6 +90,10 @@ export default function OrderDetail() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrder();
+  }, [params.id]);
 
   const handleSave = async () => {
     if (!order) return;

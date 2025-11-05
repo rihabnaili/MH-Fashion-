@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useCart } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
+import Image from 'next/image';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { Plus, Minus, Trash2, ShoppingBag, Phone, User, MapPin } from 'lucide-react';
 import Link from 'next/link';
@@ -194,9 +195,11 @@ export default function CartPage() {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg overflow-hidden">
-                          <img
+                          <Image
                             src={item.images[0] || '/home-media/set.jpg'}
                             alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
                           />
                         </div>
