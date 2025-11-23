@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -8,7 +8,7 @@ import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
 import { Loader2, AlertCircle } from 'lucide-react';
 
-export default function AllProductsPage() {
+function AllProductsContent() {
   const t = useTranslations();
   const { lang } = useLanguage();
   const searchParams = useSearchParams();
@@ -213,5 +213,21 @@ export default function AllProductsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AllProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-offwhite pt-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 text-black animate-spin" />
+          </div>
+        </div>
+      </div>
+    }>
+      <AllProductsContent />
+    </Suspense>
   );
 }
