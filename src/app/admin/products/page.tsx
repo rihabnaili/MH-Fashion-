@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
@@ -135,11 +136,15 @@ export default function AdminProducts() {
                   <div key={product._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 space-y-3">
                     <div className="flex items-center space-x-3">
                       {product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name[lang as keyof typeof product.name]}
-                          className="h-16 w-16 object-cover rounded-lg shadow-sm flex-shrink-0"
-                        />
+                        <div className="h-16 w-16 relative flex-shrink-0">
+                          <Image
+                            src={product.images[0]}
+                            alt={product.name[lang as keyof typeof product.name]}
+                            fill
+                            className="object-cover rounded-lg shadow-sm"
+                            sizes="64px"
+                          />
+                        </div>
                       ) : (
                         <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
                           <span className="text-gray-400 text-xs text-center">Aucune Image</span>
@@ -222,11 +227,15 @@ export default function AdminProducts() {
                     <tr key={product._id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
                         {product.images.length > 0 ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.name[lang as keyof typeof product.name]}
-                            className="h-12 w-12 sm:h-16 sm:w-16 object-cover rounded-lg shadow-sm"
-                          />
+                          <div className="h-12 w-12 sm:h-16 sm:w-16 relative">
+                            <Image
+                              src={product.images[0]}
+                              alt={product.name[lang as keyof typeof product.name]}
+                              fill
+                              className="object-cover rounded-lg shadow-sm"
+                              sizes="(max-width: 640px) 48px, 64px"
+                            />
+                          </div>
                         ) : (
                           <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gray-200 rounded-lg flex items-center justify-center">
                             <span className="text-gray-400 text-xs text-center">Aucune Image</span>
