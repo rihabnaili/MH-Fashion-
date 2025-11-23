@@ -128,7 +128,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
           ) : products.length > 0 ? (
             <>
               <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                {products.length} {products.length > 1 ? t("productsFound") : t("productFound")} {t("for")} "{debouncedQuery}"
+                {products.length} {products.length > 1 ? t("productsFound") : t("productFound")} {t("for")} <span>&quot;{debouncedQuery}&quot;</span>
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
                 {products.map((product) => {
@@ -139,6 +139,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                     onClose();
                   };
 
+                  const productName = product.name?.[lang as 'fr' | 'ar'] || product.name?.fr || t("productName");
+
                   return (
                     <div key={product._id} className="w-full">
                       <div className="bg-white rounded-lg shadow-sm overflow-hidden group hover:shadow-md transition-shadow relative border-2 border-black">
@@ -146,7 +148,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                           <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
                             <Image
                               src={product.images?.[0] || '/home-media/set.jpg'}
-                              alt={product.name?.[lang] || product.name?.fr || t("productName")}
+                              alt={productName}
                               fill
                               className="object-contain bg-gray-100"
                               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -155,7 +157,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                           <div className="w-full h-0.5 bg-black"></div>
                         </div>
                         <div className="p-1.5 sm:p-2 text-center">
-                          <h3 className="font-medium text-black mb-1 text-xs sm:text-sm line-clamp-2 min-h-[2rem]">{product.name?.[lang] || product.name?.fr || t("productName")}</h3>
+                          <h3 className="font-medium text-black mb-1 text-xs sm:text-sm line-clamp-2 min-h-[2rem]">{productName}</h3>
                           <div className="flex items-center justify-center space-x-1 mb-1.5 sm:mb-2 flex-wrap">
                             {product.originalPrice && product.originalPrice > product.price && (
                               <span className="text-[10px] sm:text-xs text-red-500 line-through">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
@@ -66,7 +66,9 @@ export default function OrderDetail() {
   const [editedNotes, setEditedNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
+    if (!params.id) return;
+    
     try {
       const response = await fetch(`/api/orders/${params.id}`);
       
@@ -89,11 +91,11 @@ export default function OrderDetail() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [params.id]);
 
   useEffect(() => {
     fetchOrder();
-  }, [params.id]);
+  }, [fetchOrder]);
 
   const handleSave = async () => {
     if (!order) return;
