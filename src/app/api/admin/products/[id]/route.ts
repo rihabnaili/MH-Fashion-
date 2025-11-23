@@ -61,6 +61,35 @@ export async function PUT(
     // Parse product data
     const updateData = JSON.parse(productData as string);
     
+    // Filter out empty strings from arrays
+    if (updateData.color && Array.isArray(updateData.color)) {
+      updateData.color = updateData.color.filter((c: string) => c && c.trim() !== '');
+    }
+    if (updateData.size && Array.isArray(updateData.size)) {
+      updateData.size = updateData.size.filter((s: string) => s && s.trim() !== '');
+    }
+    
+    // Validate arrays are not empty
+    if (!Array.isArray(updateData.color) || updateData.color.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'At least one color is required' 
+        },
+        { status: 400 }
+      );
+    }
+    
+    if (!Array.isArray(updateData.size) || updateData.size.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'At least one size is required' 
+        },
+        { status: 400 }
+      );
+    }
+    
     // Find existing product
     const existingProduct = await Product.findById(params.id);
     if (!existingProduct) {

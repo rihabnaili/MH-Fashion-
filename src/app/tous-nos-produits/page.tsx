@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
@@ -10,10 +11,19 @@ import { Loader2, AlertCircle } from 'lucide-react';
 export default function AllProductsPage() {
   const t = useTranslations();
   const { lang } = useLanguage();
+  const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Get search query from URL on mount
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+    }
+  }, [searchParams]);
 
   // Fetch all products
   const { products, isLoading, error, pagination, fetchProducts } = useProducts({

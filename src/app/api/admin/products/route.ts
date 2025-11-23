@@ -39,6 +39,14 @@ export async function POST(request: NextRequest) {
     // Parse product data
     const product = JSON.parse(productData as string);
     
+    // Filter out empty strings from arrays
+    if (product.color && Array.isArray(product.color)) {
+      product.color = product.color.filter((c: string) => c && c.trim() !== '');
+    }
+    if (product.size && Array.isArray(product.size)) {
+      product.size = product.size.filter((s: string) => s && s.trim() !== '');
+    }
+    
     // Validate required fields
     const requiredFields = ['name', 'price', 'size', 'color', 'category'];
     for (const field of requiredFields) {
@@ -51,6 +59,27 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+    }
+    
+    // Validate arrays are not empty
+    if (!Array.isArray(product.color) || product.color.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'At least one color is required' 
+        },
+        { status: 400 }
+      );
+    }
+    
+    if (!Array.isArray(product.size) || product.size.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'At least one size is required' 
+        },
+        { status: 400 }
+      );
     }
     
     // Validate name structure

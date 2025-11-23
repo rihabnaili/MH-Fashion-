@@ -53,8 +53,8 @@ export default function CategoriesSection() {
         {/* Desktop */}
         <div className="hidden lg:grid grid-cols-6 gap-6 md:gap-8">
           {categories.map(({ key, imgSrc }, index) => (
-            <div key={key} className={`text-center group cursor-pointer font-text text-black ${key === 'ensembles' || key === 'chemises' ? 'ml-5' : ''}`}>
-              <div className="relative overflow-hidden rounded-md mb-2">
+            <div key={key} className="text-center group cursor-pointer font-text text-black flex flex-col">
+              <div className="relative overflow-hidden rounded-md mb-2 flex-shrink-0">
                 <div className="relative w-full pt-[100%]">
                   <Image
                     src={imgSrc}
@@ -65,7 +65,7 @@ export default function CategoriesSection() {
                   />
                 </div>
               </div>
-              <h3 className="font-medium">{t(key)}</h3>
+              <h3 className="font-medium min-h-[2.5rem] flex items-center justify-center">{t(key)}</h3>
             </div>
           ))}
         </div>
@@ -87,9 +87,9 @@ export default function CategoriesSection() {
             {categories.map(({ key, imgSrc }, index) => (
               <div
                 key={key}
-                className={`min-w-[160px] flex-shrink-0 text-center group cursor-pointer font-text text-black ${key === 'ensembles' || key === 'chemises' ? 'ml-6' : ''}`}
+                className="min-w-[160px] flex-shrink-0 text-center group cursor-pointer font-text text-black flex flex-col"
               >
-                <div className="relative overflow-hidden rounded-md mb-2">
+                <div className="relative overflow-hidden rounded-md mb-2 flex-shrink-0">
                   <div className="relative w-full h-36">
                     <Image
                       src={imgSrc}
@@ -100,7 +100,7 @@ export default function CategoriesSection() {
                     />
                   </div>
                 </div>
-                <h3 className="text-sm font-medium">{t(key)}</h3>
+                <h3 className="text-sm font-medium min-h-[2.5rem] flex items-center justify-center">{t(key)}</h3>
               </div>
             ))}
           </div>

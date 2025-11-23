@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .select('name price originalPrice discount images category availability createdAt')
+        .select('name price originalPrice discount images category availability size color description createdAt')
         .lean(),
       Product.countDocuments(query)
     ]);

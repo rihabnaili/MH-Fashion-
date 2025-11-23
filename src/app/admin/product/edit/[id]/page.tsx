@@ -176,13 +176,29 @@ export default function EditProductForm() {
     setIsSaving(true);
 
     try {
+      // Filter out empty strings for validation
+      const validColors = formData.color.filter(c => c.trim() !== '');
+      const validSizes = formData.size.filter(s => s.trim() !== '');
+      
       // Validate required fields
       if (!formData.name.fr || !formData.name.ar || !formData.price || 
-          formData.size.length === 0 || formData.color.length === 0 || !formData.category) {
+          validSizes.length === 0 || validColors.length === 0 || !formData.category) {
         alert(t("pleaseFillRequiredFields"));
+        setIsSaving(false);
         return;
       }
 
+      // Filter out empty strings from arrays
+      const filteredColors = formData.color.filter(c => c.trim() !== '');
+      const filteredSizes = formData.size.filter(s => s.trim() !== '');
+      
+      // Validate arrays are not empty after filtering
+      if (filteredColors.length === 0 || filteredSizes.length === 0) {
+        alert(t("pleaseFillRequiredFields"));
+        setIsSaving(false);
+        return;
+      }
+      
       // Create FormData for file upload
       const formDataToSend = new FormData();
       
@@ -191,8 +207,8 @@ export default function EditProductForm() {
         name: formData.name,
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        size: formData.size,
-        color: formData.color,
+        size: filteredSizes,
+        color: filteredColors,
         discount: parseFloat(formData.discount),
         category: formData.category,
         availability: formData.availability,

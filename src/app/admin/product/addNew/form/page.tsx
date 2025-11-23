@@ -106,23 +106,39 @@ export default function AddNewProductForm() {
     setIsLoading(true);
 
     try {
+      // Filter out empty strings for validation
+      const validColors = formData.color.filter(c => c.trim() !== '');
+      const validSizes = formData.size.filter(s => s.trim() !== '');
+      
       // Validate required fields
       if (!formData.name.fr || !formData.name.ar || !formData.price || 
-          formData.size.length === 0 || formData.color.length === 0 || !formData.category) {
+          validSizes.length === 0 || validColors.length === 0 || !formData.category) {
         alert('Veuillez remplir tous les champs obligatoires');
+        setIsLoading(false);
         return;
       }
 
       // Create FormData for file upload
       const formDataToSend = new FormData();
       
+      // Filter out empty strings from arrays
+      const filteredColors = formData.color.filter(c => c.trim() !== '');
+      const filteredSizes = formData.size.filter(s => s.trim() !== '');
+      
+      // Validate arrays are not empty after filtering
+      if (filteredColors.length === 0 || filteredSizes.length === 0) {
+        alert('Veuillez remplir au moins une couleur et une taille');
+        setIsLoading(false);
+        return;
+      }
+      
       // Add product data
       formDataToSend.append('productData', JSON.stringify({
         name: formData.name,
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        size: formData.size,
-        color: formData.color,
+        size: filteredSizes,
+        color: filteredColors,
         discount: parseFloat(formData.discount),
         category: formData.category,
         availability: formData.availability,

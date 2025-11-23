@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/app/context/LanguageContext';
 
 export interface Product {
@@ -13,6 +13,12 @@ export interface Product {
   images: string[];
   category: string;
   availability: boolean;
+  size?: string[];
+  color?: string[];
+  description?: {
+    fr: string;
+    ar: string;
+  };
   createdAt: string;
 }
 
@@ -62,7 +68,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     autoFetch = true
   } = options;
 
-  const fetchProducts = async (page: number = 1) => {
+  const fetchProducts = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     setError(null);
     
@@ -98,7 +104,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [category, limit, search, sortBy, sortOrder]);
 
   const refetch = () => fetchProducts(1);
   
@@ -119,7 +125,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     if (autoFetch) {
       fetchProducts(1);
     }
-  }, [category, limit, search, sortBy, sortOrder, autoFetch, fetchProducts]);
+  }, [autoFetch, fetchProducts]);
 
   return {
     products,

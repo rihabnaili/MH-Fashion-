@@ -1,27 +1,26 @@
 import React, { useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { useLanguage } from "@/app/context/LanguageContext";
-import ProductImageGallery from "./ProductImageGallery";
-import ProductQuickView from "./ProductQuickView";
+import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
 
 const ProductCard = ({ product }) => {
   const t = useTranslations();
   const { lang } = useLanguage();
+  const router = useRouter();
+  const { addToCart } = useCart();
   const [imageError, setImageError] = useState(false);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const handleImageError = () => {
     setImageError(true);
   };
 
-  const openQuickView = () => {
-    setIsQuickViewOpen(true);
-  };
-
-  const closeQuickView = () => {
-    setIsQuickViewOpen(false);
+  const handleBuyClick = () => {
+    // Add to cart without size/color (user will select on cart page)
+    addToCart(product, '', '', 1);
+    // Redirect to cart page
+    router.push('/panier');
   };
 
   // Calculate discount percentage
@@ -78,20 +77,13 @@ const ProductCard = ({ product }) => {
           
           {/* Buy button - matching the design */}
           <button 
-            onClick={openQuickView}
+            onClick={handleBuyClick}
             className="w-full bg-black hover:bg-gray-800 text-white py-2 rounded text-sm font-medium transition-colors"
           >
             {lang === 'ar' ? 'شراء' : 'Acheter'}
           </button>
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <ProductQuickView
-        product={product}
-        isOpen={isQuickViewOpen}
-        onClose={closeQuickView}
-      />
     </>
   );
 };
