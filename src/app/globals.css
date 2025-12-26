@@ -166,3 +166,20 @@ header .mr-auto {
   transform: rotate(180deg);
 }
 
+/* Fix cursor for clickable icons */
+svg[onClick],
+button svg,
+.cursor-pointer svg,
+a svg {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Prevent text cursor on clickable elements with icons */
+button,
+.cursor-pointer,
+a[href] {
+  cursor: pointer;
+  user-select: none;
+}
+

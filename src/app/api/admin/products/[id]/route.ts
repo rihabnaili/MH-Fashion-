@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
-import { unlink } from 'fs/promises';
-import { join } from 'path';
 
 // GET single product
 export async function GET(
@@ -21,9 +19,17 @@ export async function GET(
       );
     }
     
+    // Convert base64 images to API URLs for frontend
+    const productWithImageUrls = {
+      ...product.toObject(),
+      images: product.images?.map((_: string, index: number) => 
+        `/api/images/${product._id}/${index}`
+      ) || []
+    };
+    
     return NextResponse.json({
       success: true,
-      data: product
+      data: productWithImageUrls
     });
   } catch (error) {
     console.error('Error fetching product:', error);
@@ -100,57 +106,73 @@ export async function PUT(
     }
     
     // Handle image updates
-    let imagePaths = existingProduct.images;
+    let imageBase64Strings: string[] = [];
     
     if (images && images.length > 0) {
-      // Delete old images from filesystem
-      for (const oldImagePath of existingProduct.images) {
-        try {
-          const fullPath = join(process.cwd(), 'public', oldImagePath);
-          await unlink(fullPath);
-        } catch (error) {
-          console.log('Could not delete old image:', oldImagePath);
-        }
-      }
-      
-      // Save new images
-      const productsDir = join(process.cwd(), 'public', 'products');
-      imagePaths = [];
+      // Separate new files from existing image URLs
+      const newFiles: File[] = [];
+      const existingImageIndices: number[] = [];
       
       for (const image of images) {
         if (image instanceof File) {
-          // Generate unique filename
-          const timestamp = Date.now();
-          const randomString = Math.random().toString(36).substring(2, 15);
-          const extension = image.name.split('.').pop();
-          const filename = `product_${timestamp}_${randomString}.${extension}`;
-          
-          // Convert File to Buffer
-          const bytes = await image.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          
-          // Save file
-          const filePath = join(productsDir, filename);
-          const { writeFile } = await import('fs/promises');
-          await writeFile(filePath, new Uint8Array(buffer));
-          
-          // Add to image paths
-          imagePaths.push(`/products/${filename}`);
+          newFiles.push(image);
+        } else if (typeof image === 'string' && image.startsWith('/api/images/')) {
+          // Extract image index from URL: /api/images/{productId}/{index}
+          const urlParts = image.split('/');
+          const index = parseInt(urlParts[urlParts.length - 1]);
+          if (!isNaN(index) && index >= 0 && index < existingProduct.images.length) {
+            existingImageIndices.push(index);
+          }
         }
       }
+      
+      // First, add existing images that should be kept (in order)
+      for (const index of existingImageIndices) {
+        if (existingProduct.images[index]) {
+          imageBase64Strings.push(existingProduct.images[index]);
+        }
+      }
+      
+      // Then, add new images converted to base64
+      for (const image of newFiles) {
+        // Get mime type
+        const mimeType = image.type || 'image/jpeg';
+        
+        // Convert File to Buffer
+        const bytes = await image.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
+        // Convert to base64
+        const base64String = buffer.toString('base64');
+        const base64DataUri = `data:${mimeType};base64,${base64String}`;
+        
+        // Add to base64 images array
+        imageBase64Strings.push(base64DataUri);
+      }
+    } else {
+      // No images provided, keep existing ones
+      imageBase64Strings = existingProduct.images;
     }
     
     // Update product
     const updatedProduct = await Product.findByIdAndUpdate(
       params.id,
-      { ...updateData, images: imagePaths },
+      { ...updateData, images: imageBase64Strings },
       { new: true, runValidators: true }
     );
+    
+    // Convert base64 images to API URLs for response
+    const productWithImageUrls = {
+      ...updatedProduct.toObject(),
+      images: updatedProduct.images?.map((_: string, index: number) => 
+        `/api/images/${updatedProduct._id}/${index}`
+      ) || []
+    };
     
     return NextResponse.json({
       success: true,
       message: 'Product updated successfully',
-      data: updatedProduct
+      data: productWithImageUrls
     });
   } catch (error) {
     console.error('Error updating product:', error);
@@ -174,7 +196,7 @@ export async function DELETE(
   try {
     await connectDB();
     
-    // Find product to get image paths
+    // Find product
     const product = await Product.findById(params.id);
     if (!product) {
       return NextResponse.json(
@@ -183,17 +205,7 @@ export async function DELETE(
       );
     }
     
-    // Delete images from filesystem
-    for (const imagePath of product.images) {
-      try {
-        const fullPath = join(process.cwd(), 'public', imagePath);
-        await unlink(fullPath);
-      } catch (error) {
-        console.log('Could not delete image:', imagePath);
-      }
-    }
-    
-    // Delete product from database
+    // Delete product from database (images are stored in DB, so they'll be deleted automatically)
     await Product.findByIdAndDelete(params.id);
     
     return NextResponse.json({

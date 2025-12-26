@@ -48,13 +48,16 @@ export default function AdminHome() {
               </p>
             </Link>
 
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+            <Link
+              href="/admin/statistics"
+              className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 group"
+            >
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📊</div>
               <h3 className="text-lg sm:text-xl font-semibold text-black mb-2">Statistiques</h3>
               <p className="text-gray-600 text-xs sm:text-sm">
                 Surveillez les performances de votre boutique
               </p>
-            </div>
+            </Link>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-2">

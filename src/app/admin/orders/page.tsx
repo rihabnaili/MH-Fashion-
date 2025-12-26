@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
@@ -80,7 +80,7 @@ export default function AdminOrders() {
     cancelled: 'bg-red-100 text-red-800'
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -112,11 +112,11 @@ export default function AdminOrders() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedStatus, searchQuery, currentPage]);
 
   useEffect(() => {
     fetchOrders();
-  }, [selectedStatus, searchQuery, currentPage]);
+  }, [fetchOrders]);
 
   const handleStatusChange = (newStatus: string) => {
     setSelectedStatus(newStatus);

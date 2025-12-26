@@ -48,6 +48,14 @@ export async function GET(request: NextRequest) {
       Product.countDocuments(query)
     ]);
     
+    // Convert base64 images to API URLs for frontend
+    const productsWithImageUrls = products.map((product: any) => ({
+      ...product,
+      images: product.images?.map((_: string, index: number) => 
+        `/api/images/${product._id}/${index}`
+      ) || []
+    }));
+    
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
     const hasNextPage = page < totalPages;
@@ -56,7 +64,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        products,
+        products: productsWithImageUrls,
         pagination: {
           currentPage: page,
           totalPages,

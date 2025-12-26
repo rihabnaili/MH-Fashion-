@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
@@ -83,13 +83,9 @@ export default function EditProductForm() {
     description: { fr: '', ar: '' }
   });
 
-  useEffect(() => {
-    if (productId) {
-      fetchProduct();
-    }
-  }, [productId]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
+    if (!productId) return;
+    
     try {
       const response = await fetch(`/api/admin/products/${productId}`);
       if (response.ok) {
@@ -121,7 +117,13 @@ export default function EditProductForm() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [productId, router, t]);
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId, fetchProduct]);
 
   const handleInputChange = (field: string, value: any) => {
     if (field.includes('.')) {

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 
 // POST new product with image uploads
 export async function POST(request: NextRequest) {
@@ -93,44 +91,33 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create products directory if it doesn't exist
-    const productsDir = join(process.cwd(), 'public', 'products');
-    try {
-      await mkdir(productsDir, { recursive: true });
-    } catch (error) {
-      console.log('Products directory already exists');
-    }
-    
-    // Save images and get their paths
-    const imagePaths: string[] = [];
+    // Convert images to base64 and store in MongoDB
+    const imageBase64Strings: string[] = [];
     
     for (let i = 0; i < images.length; i++) {
       const image = images[i] as File;
       
       if (!image) continue;
       
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const extension = image.name.split('.').pop();
-      const filename = `product_${timestamp}_${randomString}.${extension}`;
+      // Get mime type
+      const mimeType = image.type || 'image/jpeg';
       
       // Convert File to Buffer
       const bytes = await image.arrayBuffer();
       const buffer = Buffer.from(bytes);
       
-      // Save file
-      const filePath = join(productsDir, filename);
-      await writeFile(filePath, new Uint8Array(buffer));
+      // Convert to base64
+      const base64String = buffer.toString('base64');
+      const base64DataUri = `data:${mimeType};base64,${base64String}`;
       
-      // Add to image paths
-      imagePaths.push(`/products/${filename}`);
+      // Add to base64 images array
+      imageBase64Strings.push(base64DataUri);
     }
     
-    // Create product with image paths
+    // Create product with base64 images
     const newProduct = new Product({
       ...product,
-      images: imagePaths
+      images: imageBase64Strings
     });
     
     await newProduct.save();
@@ -204,9 +191,17 @@ export async function GET(request: NextRequest) {
     
     const total = await Product.countDocuments(query);
     
+    // Convert base64 images to API URLs for frontend
+    const productsWithImageUrls = products.map((product: any) => ({
+      ...product,
+      images: product.images?.map((_: string, index: number) => 
+        `/api/images/${product._id}/${index}`
+      ) || []
+    }));
+    
     return NextResponse.json({
       success: true,
-      data: products,
+      data: productsWithImageUrls,
       pagination: {
         page,
         limit,

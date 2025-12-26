@@ -5,6 +5,7 @@ export default function IconArrowDropDownFill(props: React.SVGProps<SVGSVGElemen
       fill="currentColor"
       height="30px"
       width="30px"
+      style={{ cursor: 'inherit', userSelect: 'none' }}
       {...props}
     >
       <path fill="none" d="M0 0h24v24H0z" />

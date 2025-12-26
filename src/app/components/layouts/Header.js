@@ -89,14 +89,18 @@ export default function Header() {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-4">
-            <Search
-              className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer"
+            <button
               onClick={() => setSearchOpen(true)}
-            />
-            <div className="relative cursor-pointer">
+              className="p-1 cursor-pointer"
+              aria-label={t("search")}
+            >
+              <Search
+                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer"
+              />
+            </button>
+            <div className="relative cursor-pointer" onClick={() => setCartOpen(true)}>
               <ShoppingCart 
-                className="w-5 h-5 text-black hover:text-gray-600" 
-                onClick={() => setCartOpen(true)}
+                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer" 
               />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">

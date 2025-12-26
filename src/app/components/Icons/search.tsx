@@ -7,6 +7,7 @@ export function SearchFilled(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       width="1em"
       height="1em"
+      style={{ cursor: 'inherit', userSelect: 'none' }}
       {...props}
     >
       <g fill="currentColor" fillRule="evenodd" clipRule="evenodd">
