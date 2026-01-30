@@ -82,8 +82,8 @@ export default function Footer() {
           <div>
             <h3 className="font-title font-medium mb-4">{t("contact")}</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li>{t("email")}: contact@mhfashion.tn</li>
-              <li>{t("phone")}: +216 XX XXX XXX</li>
+              <li>{t("email")}: mhclothes11@gmail.com</li>
+              <li>{t("phone")}: +216 54 407 135</li>
               <li>{t("customerService")}: 7j/7</li>
             </ul>
           </div>

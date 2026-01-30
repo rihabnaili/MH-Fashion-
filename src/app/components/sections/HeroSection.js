@@ -69,14 +69,14 @@ export default function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/home-media/main_page.jpg"
+          src="/home-media/main_page.png"
           alt="MH Fashion Hero"
           fill
-          className="object-cover object-center"
+          className="object-cover object-top"
           priority
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 100vw"
         />
-        <div className="absolute inset-0 bg-black/10 sm:bg-black/20 md:bg-black/30"></div>
+        <div className="absolute inset-0 bg-black/20 sm:bg-black/30 md:bg-black/40"></div>
       </div>
     </section>
   );
