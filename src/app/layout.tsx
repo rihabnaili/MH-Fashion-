@@ -19,7 +19,7 @@ export const metadata = {
     siteName: "MH Fashion",
     images: [
       {
-        url: "/logo.png",
+        url: "/logo2.png",
         width: 1200,
         height: 630,
         alt: "MH Fashion Logo",
@@ -31,7 +31,7 @@ export const metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo.png", type: "image/png" }
+      { url: "/logo2.png", type: "image/png" }
     ],
     shortcut: "/favicon.ico",
     apple: "/logo.png",
