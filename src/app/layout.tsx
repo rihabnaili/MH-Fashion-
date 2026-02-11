@@ -7,18 +7,37 @@ import { CartProvider } from "./context/CartContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "MH Fashion",
-  description: "Votre boutique de mode en ligne",
+  description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
+  metadataBase: new URL("https://www.mhfashion.tn"),
+
+  openGraph: {
+    title: "MH Fashion",
+    description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
+    url: "https://www.mhfashion.tn",
+    siteName: "MH Fashion",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "MH Fashion Logo",
+      },
+    ],
+    type: "website",
+  },
+
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/logo.png', type: 'image/png' }
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" }
     ],
-    shortcut: '/favicon.ico',
-    apple: '/logo.png',
+    shortcut: "/favicon.ico",
+    apple: "/logo.png",
   },
 };
+
 
 export default function RootLayout({
   children,
