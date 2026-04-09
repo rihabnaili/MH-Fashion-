@@ -14,9 +14,9 @@ type LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLangState] = useState<string>('ar');
+  const [lang, setLangState] = useState<string>('fr');
   const [messages, setMessages] = useState<Messages>({});
-  const [isRTL, setIsRTL] = useState<boolean>(true); // Default to RTL for Arabic
+  const [isRTL, setIsRTL] = useState<boolean>(false); // Default to LTR for French
 
   // Set language in state + localStorage + HTML lang attr + direction
   const setLang = (newLang: string) => {
@@ -30,7 +30,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   // Load language from localStorage on first mount
   useEffect(() => {
-    const stored = localStorage.getItem('lang') || 'ar';
+    const stored = localStorage.getItem('lang') || 'fr';
     const isRTL = stored === 'ar';
     setLangState(stored);
     setIsRTL(isRTL);
