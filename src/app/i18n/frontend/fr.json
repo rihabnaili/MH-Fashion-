@@ -68,6 +68,8 @@
   "nextPage": "Suivant",
   "pageOf": "Page {current} sur {total}",
   "showingPageResults": "Affichage de {start} à {end} sur {total} produits",
+  "catalogPreviewDescription": "Aperçu des {count} produits les plus récents. Consultez le catalogue complet pour voir tout l'inventaire.",
+  "browseFullCatalog": "Voir tout le catalogue",
   "errorLoading": "Erreur lors du chargement des produits",
   "errorSubmission": "Erreur lors de la soumission de la commande",
   "errorUpdate": "Erreur lors de la mise à jour",

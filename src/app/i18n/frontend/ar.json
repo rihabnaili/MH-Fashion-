@@ -68,6 +68,8 @@
   "nextPage": "التالي",
   "pageOf": "الصفحة {current} من {total}",
   "showingPageResults": "عرض {start} إلى {end} من أصل {total} منتج",
+  "catalogPreviewDescription": "هذه معاينة لآخر {count} منتجات فقط. افتح الكتالوج الكامل لرؤية كل المنتجات.",
+  "browseFullCatalog": "عرض الكتالوج الكامل",
   "errorLoading": "خطأ في تحميل المنتجات",
   "errorSubmission": "خطأ في إرسال الطلب",
   "errorUpdate": "خطأ في التحديث",
