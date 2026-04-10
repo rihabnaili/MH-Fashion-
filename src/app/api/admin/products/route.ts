@@ -187,16 +187,16 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .select('name price category availability createdAt')
       .lean();
     
     const total = await Product.countDocuments(query);
     
-    // Convert base64 images to API URLs for frontend
+    // Avoid sending base64 images in list responses (too large / slow on serverless).
+    // Products always have at least one image in the schema.
     const productsWithImageUrls = products.map((product: any) => ({
       ...product,
-      images: product.images?.map((_: string, index: number) => 
-        `/api/images/${product._id}/${index}`
-      ) || []
+      images: [`/api/images/${product._id}/0`]
     }));
     
     return NextResponse.json({

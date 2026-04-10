@@ -43,17 +43,15 @@ export async function GET(request: NextRequest) {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .select('name price originalPrice discount images category availability size color description createdAt')
+        .select('name price originalPrice discount category availability size color description createdAt')
         .lean(),
       Product.countDocuments(query)
     ]);
     
-    // Convert base64 images to API URLs for frontend
+    // Avoid sending base64 images in list responses (too large / slow on serverless).
     const productsWithImageUrls = products.map((product: any) => ({
       ...product,
-      images: product.images?.map((_: string, index: number) => 
-        `/api/images/${product._id}/${index}`
-      ) || []
+      images: [`/api/images/${product._id}/0`]
     }));
     
     // Calculate pagination info
