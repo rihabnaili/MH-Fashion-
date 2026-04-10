@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
+import mongoose from 'mongoose';
 
 // GET image from MongoDB as base64
 export async function GET(
@@ -9,25 +10,29 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    
-    const product = await Product.findById(params.productId);
-    
-    if (!product || !product.images) {
+
+    if (!mongoose.Types.ObjectId.isValid(params.productId)) {
       return NextResponse.json(
         { success: false, message: 'Product or image not found' },
         { status: 404 }
       );
     }
-    
-    const imageIndex = parseInt(params.imageIndex);
-    if (imageIndex < 0 || imageIndex >= product.images.length) {
+
+    const imageIndex = Number(params.imageIndex);
+    if (!Number.isInteger(imageIndex) || imageIndex < 0) {
       return NextResponse.json(
         { success: false, message: 'Image index out of range' },
         { status: 404 }
       );
     }
-    
-    const base64Image = product.images[imageIndex];
+
+    // Fetch only the requested image element (avoid loading the full base64 array).
+    const [result] = await Product.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(params.productId) } },
+      { $project: { image: { $arrayElemAt: ['$images', imageIndex] } } }
+    ]);
+
+    const base64Image = result?.image as string | undefined;
     
     if (!base64Image) {
       return NextResponse.json(

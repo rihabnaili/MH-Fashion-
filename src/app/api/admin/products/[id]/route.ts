@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
+import mongoose from 'mongoose';
 
 // GET single product
 export async function GET(
@@ -9,8 +10,34 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    
-    const product = await Product.findById(params.id);
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product id' },
+        { status: 400 }
+      );
+    }
+
+    // Avoid pulling large base64 images array; compute count only.
+    const [product] = await Product.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(params.id) } },
+      {
+        $project: {
+          name: 1,
+          price: 1,
+          originalPrice: 1,
+          size: 1,
+          color: 1,
+          discount: 1,
+          category: 1,
+          availability: 1,
+          description: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          imageCount: { $size: { $ifNull: ['$images', []] } }
+        }
+      }
+    ]);
     
     if (!product) {
       return NextResponse.json(
@@ -19,12 +46,10 @@ export async function GET(
       );
     }
     
-    // Convert base64 images to API URLs for frontend
+    const imageCount = typeof product.imageCount === 'number' ? product.imageCount : 0;
     const productWithImageUrls = {
-      ...product.toObject(),
-      images: product.images?.map((_: string, index: number) => 
-        `/api/images/${product._id}/${index}`
-      ) || []
+      ...product,
+      images: Array.from({ length: imageCount }, (_, index) => `/api/images/${product._id}/${index}`)
     };
     
     return NextResponse.json({
@@ -97,7 +122,7 @@ export async function PUT(
     }
     
     // Find existing product
-    const existingProduct = await Product.findById(params.id);
+    const existingProduct = await Product.findById(params.id).select('images');
     if (!existingProduct) {
       return NextResponse.json(
         { success: false, message: 'Product not found' },
