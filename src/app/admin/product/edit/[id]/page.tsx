@@ -7,6 +7,7 @@ import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { LogOut } from 'lucide-react';
 import ImageUploadManager from '@/app/components/admin/ImageUploadManager';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 
 interface ProductFormData {
   name: {
@@ -55,8 +56,6 @@ const categories = [
   { value: 'promos', label: 'Promotions' },
   { value: 'nouveautes', label: 'Nouveautés' }
 ];
-
-const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
 export default function EditProductForm() {
   const { lang } = useLanguage();
@@ -357,7 +356,7 @@ export default function EditProductForm() {
                   {t("availableSizes")} *
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
-                  {sizes.map((size) => (
+                  {PRODUCT_SIZES.map((size) => (
                     <label key={size} className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"

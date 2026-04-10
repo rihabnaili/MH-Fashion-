@@ -204,6 +204,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               return item;
             }
 
+            const refreshedAvailableSizes = normalizeStringArray(product.size);
+            const refreshedAvailableColors = normalizeStringArray(product.color);
+            const refreshedImages = normalizeStringArray(product.images);
+
             return {
               ...item,
               name: normalizeLocalizedText(product.name),
@@ -211,10 +215,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               originalPrice:
                 typeof product.originalPrice === 'number' ? product.originalPrice : item.originalPrice,
               discount: typeof product.discount === 'number' ? product.discount : item.discount,
-              images: normalizeStringArray(product.images).length > 0 ? normalizeStringArray(product.images) : item.images,
+              images: refreshedImages.length > 0 ? refreshedImages : item.images,
               category: typeof product.category === 'string' ? product.category : item.category,
-              availableSizes: normalizeStringArray(product.size),
-              availableColors: normalizeStringArray(product.color),
+              size: item.size && refreshedAvailableSizes.includes(item.size) ? item.size : '',
+              color: item.color && refreshedAvailableColors.includes(item.color) ? item.color : '',
+              availableSizes: refreshedAvailableSizes,
+              availableColors: refreshedAvailableColors,
               description: normalizeDescription(product.description) ?? item.description,
             };
           })

@@ -6,6 +6,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import ProductImageGallery from './ProductImageGallery';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 
 interface ProductQuickViewProps {
   product: any;
@@ -26,10 +27,7 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
   if (!isOpen || !product) return null;
 
   const productName = product.name?.[lang] || product.name?.fr || t("productName");
-  const productImage = product.images?.[0] || '/home-media/set.jpg';
-
-  // Available sizes and colors (you can customize these based on your product data)
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const availableSizes = new Set(Array.isArray(product.size) ? product.size : []);
   const availableColors = [
     t("red"), t("blue"), t("green"), t("black"), t("white"), t("gray")
   ];
@@ -137,19 +135,30 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                     Taille *
                   </label>
                   <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                    {availableSizes.map((size) => (
+                    {PRODUCT_SIZES.map((size) => {
+                      const isAvailable = availableSizes.has(size);
+
+                      return (
                       <button
+                        type="button"
                         key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`p-2 sm:p-4 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                          selectedSize === size
+                        onClick={() => {
+                          if (isAvailable) {
+                            setSelectedSize(size);
+                          }
+                        }}
+                        disabled={!isAvailable}
+                        className={`p-2 sm:p-4 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${
+                          selectedSize === size && isAvailable
                             ? 'border-black bg-black text-white shadow-lg scale-105'
-                            : 'border-gray-200 text-gray-700 hover:border-black hover:bg-gray-50 hover:shadow-md'
+                            : isAvailable
+                              ? 'transform hover:scale-105 border-gray-200 text-gray-700 hover:border-black hover:bg-gray-50 hover:shadow-md'
+                              : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                       >
                         {size}
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
 

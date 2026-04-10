@@ -8,6 +8,7 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import ProductImageGallery from '@/app/components/ui/ProductImageGallery';
 import { Loader2 } from 'lucide-react';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 
 interface Product {
   _id: string;
@@ -135,6 +136,7 @@ export default function ProductDetailPage() {
 
   const productName = product.name[lang as keyof typeof product.name] || product.name.fr;
   const productDescription = product.description?.[lang as keyof typeof product.description] || product.description?.fr;
+  const availableSizes = new Set(product.size);
 
   return (
     <div className="min-h-screen bg-white">
@@ -172,19 +174,30 @@ export default function ProductDetailPage() {
                 {t('size')}
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {product.size.map((size) => (
+                {PRODUCT_SIZES.map((size) => {
+                  const isAvailable = availableSizes.has(size);
+
+                  return (
                   <button
+                    type="button"
                     key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 text-sm border rounded-lg ${
-                      selectedSize === size
+                    onClick={() => {
+                      if (isAvailable) {
+                        setSelectedSize(size);
+                      }
+                    }}
+                    disabled={!isAvailable}
+                    className={`px-4 py-2 text-sm border rounded-lg transition-colors ${
+                      selectedSize === size && isAvailable
                         ? 'border-gold bg-gold text-black'
-                        : 'border-gray-300 hover:border-gold'
+                        : isAvailable
+                          ? 'border-gray-300 hover:border-gold'
+                          : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                     }`}
                   >
                     {size}
                   </button>
-                ))}
+                )})}
               </div>
             </div>
 

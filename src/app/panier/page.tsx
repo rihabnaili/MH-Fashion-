@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { Plus, Minus, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 
 // Cart Item Component
 const CartItemCard = ({ 
@@ -28,6 +29,7 @@ const CartItemCard = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const productImages = item.images && item.images.length > 0 ? item.images : ['/home-media/set.jpg'];
+  const availableSizes = new Set(item.availableSizes || []);
   
   const goToNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -146,20 +148,30 @@ const CartItemCard = ({
               {t("size")}: {!item.size && <span className="text-red-500">*</span>}
             </label>
             <div className="flex flex-wrap gap-2">
-              {(item.availableSizes || []).map((size: string) => (
+              {PRODUCT_SIZES.map((size) => {
+                const isAvailable = availableSizes.has(size);
+
+                return (
                 <button
                   type="button"
                   key={size}
-                  onClick={() => onSizeChange(item.cartItemId, size)}
+                  onClick={() => {
+                    if (isAvailable) {
+                      onSizeChange(item.cartItemId, size);
+                    }
+                  }}
+                  disabled={!isAvailable}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
-                    item.size === size
+                    item.size === size && isAvailable
                       ? 'border-black bg-black text-white'
-                      : 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
+                      : isAvailable
+                        ? 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
+                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   {size}
                 </button>
-              ))}
+              )})}
             </div>
           </div>
 
