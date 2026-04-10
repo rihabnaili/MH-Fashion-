@@ -6,7 +6,7 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
 
-let isConnected = false;
+let isConnected = false; 
 
 async function connectDB() {
   if (isConnected) {
