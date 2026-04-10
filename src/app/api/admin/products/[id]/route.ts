@@ -77,6 +77,14 @@ export async function PUT(
 ) {
   try {
     await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product id' },
+        { status: 400 }
+      );
+    }
+    const productObjectId = new mongoose.Types.ObjectId(params.id);
     
     const formData = await request.formData();
     const productData = formData.get('productData');
@@ -88,9 +96,29 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    let productDataString: string;
+    if (typeof productData === 'string') {
+      productDataString = productData;
+    } else if (productData instanceof File) {
+      productDataString = await productData.text();
+    } else {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product data' },
+        { status: 400 }
+      );
+    }
     
     // Parse product data
-    const updateData = JSON.parse(productData as string);
+    let updateData: any;
+    try {
+      updateData = JSON.parse(productDataString);
+    } catch {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product data JSON' },
+        { status: 400 }
+      );
+    }
     
     // Filter out empty strings from arrays
     if (updateData.color && Array.isArray(updateData.color)) {
@@ -121,77 +149,113 @@ export async function PUT(
       );
     }
     
-    // Find existing product
-    const existingProduct = await Product.findById(params.id).select('images');
-    if (!existingProduct) {
+    const [meta] = await Product.aggregate([
+      { $match: { _id: productObjectId } },
+      {
+        $project: {
+          imageCount: { $size: { $ifNull: ['$images', []] } }
+        }
+      }
+    ]);
+    if (!meta) {
       return NextResponse.json(
         { success: false, message: 'Product not found' },
         { status: 404 }
       );
     }
+    const existingImageCount = typeof meta.imageCount === 'number' ? meta.imageCount : 0;
     
     // Handle image updates
-    let imageBase64Strings: string[] = [];
-    
-    if (images && images.length > 0) {
-      // Separate new files from existing image URLs
-      const newFiles: File[] = [];
-      const existingImageIndices: number[] = [];
-      
-      for (const image of images) {
-        if (image instanceof File) {
-          newFiles.push(image);
-        } else if (typeof image === 'string' && image.startsWith('/api/images/')) {
-          // Extract image index from URL: /api/images/{productId}/{index}
-          const urlParts = image.split('/');
-          const index = parseInt(urlParts[urlParts.length - 1]);
-          if (!isNaN(index) && index >= 0 && index < existingProduct.images.length) {
-            existingImageIndices.push(index);
+    const newFiles: File[] = [];
+    const existingImageIndices: number[] = [];
+
+    for (const image of images) {
+      if (image instanceof File) {
+        newFiles.push(image);
+        continue;
+      }
+
+      if (typeof image !== 'string') continue;
+
+      // Supports both relative and absolute URLs.
+      const match = image.match(/\/api\/images\/[a-fA-F0-9]{24}\/(\d+)(?:\?.*)?$/);
+      if (!match) continue;
+
+      const index = parseInt(match[1], 10);
+      if (!Number.isFinite(index)) continue;
+      if (index < 0 || index >= existingImageCount) continue;
+      existingImageIndices.push(index);
+    }
+
+    const hasAnyImageField = images.length > 0;
+    const keepingAllExistingInOrder =
+      existingImageIndices.length === existingImageCount &&
+      existingImageIndices.every((idx, i) => idx === i);
+
+    const shouldKeepImagesUnchanged =
+      newFiles.length === 0 && (!hasAnyImageField || keepingAllExistingInOrder);
+
+    let imageBase64Strings: string[] | undefined;
+    if (!shouldKeepImagesUnchanged) {
+      imageBase64Strings = [];
+
+      if (existingImageIndices.length > 0) {
+        const [kept] = await Product.aggregate([
+          { $match: { _id: productObjectId } },
+          {
+            $project: {
+              images: {
+                $map: {
+                  input: existingImageIndices,
+                  as: 'idx',
+                  in: { $arrayElemAt: ['$images', '$$idx'] }
+                }
+              }
+            }
           }
+        ]);
+
+        if (kept && Array.isArray(kept.images)) {
+          imageBase64Strings.push(
+            ...kept.images.filter((img: unknown) => typeof img === 'string' && img.length > 0)
+          );
         }
       }
-      
-      // First, add existing images that should be kept (in order)
-      for (const index of existingImageIndices) {
-        if (existingProduct.images[index]) {
-          imageBase64Strings.push(existingProduct.images[index]);
-        }
-      }
-      
-      // Then, add new images converted to base64
+
       for (const image of newFiles) {
-        // Get mime type
         const mimeType = image.type || 'image/jpeg';
-        
-        // Convert File to Buffer
         const bytes = await image.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        
-        // Convert to base64
         const base64String = buffer.toString('base64');
-        const base64DataUri = `data:${mimeType};base64,${base64String}`;
-        
-        // Add to base64 images array
-        imageBase64Strings.push(base64DataUri);
+        imageBase64Strings.push(`data:${mimeType};base64,${base64String}`);
       }
-    } else {
-      // No images provided, keep existing ones
-      imageBase64Strings = existingProduct.images;
     }
     
     // Update product
     const updatedProduct = await Product.findByIdAndUpdate(
       params.id,
-      { ...updateData, images: imageBase64Strings },
+      { ...updateData, ...(shouldKeepImagesUnchanged ? {} : { images: imageBase64Strings }) },
       { new: true, runValidators: true }
-    );
-    
-    // Convert base64 images to API URLs for response
+    ).select('-images');
+
+    if (!updatedProduct) {
+      return NextResponse.json(
+        { success: false, message: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
+    const finalImageCount = shouldKeepImagesUnchanged
+      ? existingImageCount
+      : (imageBase64Strings?.length ?? 0);
+
     const productWithImageUrls = {
       ...updatedProduct.toObject(),
-      images: updatedProduct.images?.map((_: string, index: number) => 
-        `/api/images/${updatedProduct._id}/${index}`
-      ) || []
+      imageCount: finalImageCount,
+      images: Array.from(
+        { length: finalImageCount },
+        (_, index) => `/api/images/${updatedProduct._id}/${index}`
+      )
     };
     
     return NextResponse.json({
