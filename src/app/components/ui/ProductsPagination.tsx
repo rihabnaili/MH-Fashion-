@@ -73,7 +73,7 @@ export default function ProductsPagination({
   const visiblePages = getVisiblePages(pagination.currentPage, pagination.totalPages);
 
   return (
-    <div className="mt-10 space-y-4">
+    <div className="mt-10 space-y-4 pb-10 sm:pb-14">
       <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${lang === 'ar' ? 'sm:flex-row-reverse' : ''}`}>
         <p className="text-sm text-gray-600">
           {t('showingPageResults', {

@@ -83,9 +83,6 @@ export default function FeaturedProducts() {
           <h2 className="text-3xl font-bold font-montserrat text-black">
             {t("newArrivals")}
           </h2>
-          <p className="mt-4 text-base text-gray-600">
-            {t("catalogPreviewDescription", { count: HOME_PRODUCTS_LIMIT })}
-          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
