@@ -30,6 +30,11 @@ const CartItemCard = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const productImages = item.images && item.images.length > 0 ? item.images : ['/home-media/set.jpg'];
   const availableSizes = new Set(item.availableSizes || []);
+  const availableColors = new Set(item.availableColors || []);
+  const colorOptions = item.color && !availableColors.has(item.color)
+    ? [...(item.availableColors || []), item.color]
+    : item.availableColors || [];
+  const selectedColorUnavailable = !!item.color && !availableColors.has(item.color);
   
   const goToNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -181,21 +186,38 @@ const CartItemCard = ({
               {t("color")}: {!item.color && <span className="text-red-500">*</span>}
             </label>
             <div className="flex flex-wrap gap-2">
-              {(item.availableColors || []).map((color: string) => (
+              {colorOptions.map((color: string) => {
+                const isAvailable = availableColors.has(color);
+
+                return (
                 <button
                   type="button"
                   key={color}
-                  onClick={() => onColorChange(item.cartItemId, color)}
+                  onClick={() => {
+                    if (isAvailable) {
+                      onColorChange(item.cartItemId, color);
+                    }
+                  }}
+                  disabled={!isAvailable}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
-                    item.color === color
+                    item.color === color && isAvailable
                       ? 'border-black bg-black text-white'
-                      : 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
+                      : isAvailable
+                        ? 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
+                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   {color}
                 </button>
-              ))}
+              )})}
             </div>
+            {selectedColorUnavailable && (
+              <p className="mt-2 text-sm text-gray-500">
+                {lang === 'ar'
+                  ? 'اللون المحدد سابقا غير متوفر حاليا.'
+                  : 'La couleur selectionnee precedemment n est plus disponible.'}
+              </p>
+            )}
           </div>
 
           {/* Price Display */}
@@ -277,6 +299,9 @@ export default function CartPage() {
 
   const totalPrice = getTotalPrice();
   const totalDiscount = getTotalDiscount();
+  const unavailableSelectionMessage = lang === 'ar'
+    ? 'يرجى اختيار مقاس ولون متاحين لكل المنتجات'
+    : 'Veuillez selectionner une taille et une couleur disponibles pour tous les articles';
 
   const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
     if (newQuantity >= 1) {
@@ -302,15 +327,20 @@ export default function CartPage() {
     updateItemSizeColor(cartItemId, currentItem.size, newColor);
   };
 
-  // Check if all items have size and color selected
-  const allItemsHaveSizeColor = items.every(item => item.size && item.color);
+  // Check if all items have an available size and color selected.
+  const allItemsHaveSizeColor = items.every((item) => {
+    const sizeIsAvailable = !!item.size && (item.availableSizes || []).includes(item.size);
+    const colorIsAvailable = !!item.color && (item.availableColors || []).includes(item.color);
+
+    return sizeIsAvailable && colorIsAvailable;
+  });
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Check if all items have size and color selected
     if (!allItemsHaveSizeColor) {
-      alert(t("pleaseSelectSizeAndColor") || "Veuillez sélectionner une taille et une couleur pour tous les articles");
+      alert(unavailableSelectionMessage);
       return;
     }
 
@@ -559,7 +589,7 @@ export default function CartPage() {
                   {!allItemsHaveSizeColor && (
                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-sm text-yellow-800">
-                        ⚠️ {t("pleaseSelectSizeAndColor") || "Veuillez sélectionner une taille et une couleur pour tous les articles"}
+                        ⚠️ {unavailableSelectionMessage}
                       </p>
                     </div>
                   )}

@@ -218,7 +218,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               images: refreshedImages.length > 0 ? refreshedImages : item.images,
               category: typeof product.category === 'string' ? product.category : item.category,
               size: item.size && refreshedAvailableSizes.includes(item.size) ? item.size : '',
-              color: item.color && refreshedAvailableColors.includes(item.color) ? item.color : '',
+              color: item.color,
               availableSizes: refreshedAvailableSizes,
               availableColors: refreshedAvailableColors,
               description: normalizeDescription(product.description) ?? item.description,
