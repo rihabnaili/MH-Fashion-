@@ -6,7 +6,10 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
+import ProductsPagination from '@/app/components/ui/ProductsPagination';
 import { Loader2, AlertCircle } from 'lucide-react';
+
+const PRODUCTS_PER_PAGE = 8;
 
 function AllProductsContent() {
   const t = useTranslations();
@@ -26,10 +29,10 @@ function AllProductsContent() {
   }, [searchParams]);
 
   // Fetch all products
-  const { products, isLoading, error, pagination, fetchProducts } = useProducts({
+  const { products, isLoading, error, pagination, goToPage } = useProducts({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     search: searchQuery || undefined,
-    limit: 24,
+    limit: PRODUCTS_PER_PAGE,
     sortBy,
     sortOrder,
     autoFetch: true
@@ -52,12 +55,6 @@ function AllProductsContent() {
     setSearchQuery(query);
   };
 
-  const handleLoadMore = () => {
-    if (pagination?.hasNextPage) {
-      fetchProducts(pagination.currentPage + 1);
-    }
-  };
-
   const categories = [
     { value: 'all', label: t("allCategories") },
     { value: 'ensembles', label: t("ensembles") },
@@ -68,6 +65,12 @@ function AllProductsContent() {
     { value: 'promos', label: t("promos") },
     { value: 'nouveautes', label: t("nouveautes") }
   ];
+
+  const totalProducts = pagination?.totalProducts ?? products.length;
+  const currentPage = pagination?.currentPage ?? 1;
+  const currentLimit = pagination?.limit ?? PRODUCTS_PER_PAGE;
+  const visibleStart = totalProducts === 0 ? 0 : (currentPage - 1) * currentLimit + 1;
+  const visibleEnd = totalProducts === 0 ? 0 : Math.min(visibleStart + products.length - 1, totalProducts);
 
   // Loading state
   if (isLoading && products.length === 0) {
@@ -106,10 +109,19 @@ function AllProductsContent() {
             {t("tousNosProduits")}
           </h1>
           <p className="text-gray-600">
-            {products.length} {products.length > 1 ? t("productsFound") : t("productFound")}
+            {totalProducts} {totalProducts > 1 ? t("productsFound") : t("productFound")}
             {searchQuery && ` ${t("for")} "${searchQuery}"`}
             {selectedCategory !== 'all' && ` ${t("in")} ${categories.find(c => c.value === selectedCategory)?.label}`}
           </p>
+          {totalProducts > 0 && (
+            <p className="mt-2 text-sm text-gray-500">
+              {t('showingPageResults', {
+                start: visibleStart,
+                end: visibleEnd,
+                total: totalProducts,
+              })}
+            </p>
+          )}
         </div>
 
         {/* Filters and Controls */}
@@ -184,17 +196,13 @@ function AllProductsContent() {
               ))}
             </div>
 
-            {/* Load more button */}
-            {pagination?.hasNextPage && (
-              <div className="text-center mt-12">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="px-8 py-3 bg-gold text-black rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium shadow-md"
-                >
-                  {isLoading ? t("loading") : t("loadMore")}
-                </button>
-              </div>
+            {pagination && (
+              <ProductsPagination
+                pagination={pagination}
+                currentCount={products.length}
+                onPageChange={goToPage}
+                isLoading={isLoading}
+              />
             )}
           </>
         ) : (
