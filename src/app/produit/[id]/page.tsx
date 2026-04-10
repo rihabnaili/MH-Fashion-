@@ -20,6 +20,7 @@ interface Product {
   originalPrice?: number;
   size: string[];
   color: string[];
+  disabledColors?: string[];
   discount: number;
   category: string;
   availability: boolean;
@@ -137,6 +138,8 @@ export default function ProductDetailPage() {
   const productName = product.name[lang as keyof typeof product.name] || product.name.fr;
   const productDescription = product.description?.[lang as keyof typeof product.description] || product.description?.fr;
   const availableSizes = new Set(product.size);
+  const disabledColors = new Set(product.disabledColors || []);
+  const selectedColorAvailable = !!selectedColor && !disabledColors.has(selectedColor);
 
   return (
     <div className="min-h-screen bg-white">
@@ -207,19 +210,31 @@ export default function ProductDetailPage() {
                 {t('color')}
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {product.color.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 text-sm border rounded-lg ${
-                      selectedColor === color
-                        ? 'border-gold bg-gold text-black'
-                        : 'border-gray-300 hover:border-gold'
-                    }`}
-                  >
-                    {color}
-                  </button>
-                ))}
+                {product.color.map((color) => {
+                  const isAvailable = !disabledColors.has(color);
+
+                  return (
+                    <button
+                      type="button"
+                      key={color}
+                      onClick={() => {
+                        if (isAvailable) {
+                          setSelectedColor(color);
+                        }
+                      }}
+                      disabled={!isAvailable}
+                      className={`px-4 py-2 text-sm border rounded-lg ${
+                        selectedColor === color && isAvailable
+                          ? 'border-gold bg-gold text-black'
+                          : isAvailable
+                            ? 'border-gray-300 hover:border-gold'
+                            : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -251,7 +266,7 @@ export default function ProductDetailPage() {
             {/* Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              disabled={!selectedSize || !selectedColor || isAddingToCart}
+              disabled={!selectedSize || !selectedColor || !selectedColorAvailable || isAddingToCart}
               className="w-full py-4 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
             >
               {isAddingToCart ? (

@@ -19,6 +19,8 @@ export interface CartItem {
   quantity: number;
   availableSizes?: string[]; // From product data
   availableColors?: string[]; // From product data
+  allColors?: string[]; // Includes disabled colors for display
+  disabledColors?: string[]; // Colors disabled in admin
   description?: {
     fr: string;
     ar: string;
@@ -51,6 +53,20 @@ const normalizeStringArray = (value: unknown) =>
   Array.isArray(value)
     ? value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
     : [];
+
+const getColorState = (productLike: Record<string, unknown>) => {
+  const allColors = normalizeStringArray(productLike.color);
+  const disabledColors = normalizeStringArray(productLike.disabledColors).filter((color) =>
+    allColors.includes(color)
+  );
+  const availableColors = allColors.filter((color) => !disabledColors.includes(color));
+
+  return {
+    allColors,
+    disabledColors,
+    availableColors,
+  };
+};
 
 const normalizeLocalizedText = (value: unknown) => {
   if (typeof value === 'string') {
@@ -94,7 +110,18 @@ const normalizeCartItem = (value: unknown): CartItem | null => {
   }
 
   const availableSizes = normalizeStringArray(rawItem.availableSizes);
-  const availableColors = normalizeStringArray(rawItem.availableColors);
+  const storedAllColors = normalizeStringArray(rawItem.allColors);
+  const storedDisabledColors = normalizeStringArray(rawItem.disabledColors);
+  const storedAvailableColors = normalizeStringArray(rawItem.availableColors);
+  const allColors =
+    storedAllColors.length > 0
+      ? storedAllColors
+      : Array.from(new Set([...storedAvailableColors, ...storedDisabledColors]));
+  const disabledColors = storedDisabledColors.filter((color) => allColors.includes(color));
+  const availableColors =
+    storedAvailableColors.length > 0
+      ? storedAvailableColors.filter((color) => allColors.length === 0 || allColors.includes(color))
+      : allColors.filter((color) => !disabledColors.includes(color));
 
   return {
     cartItemId:
@@ -113,26 +140,34 @@ const normalizeCartItem = (value: unknown): CartItem | null => {
     quantity: typeof rawItem.quantity === 'number' && rawItem.quantity > 0 ? rawItem.quantity : 1,
     availableSizes,
     availableColors,
+    allColors,
+    disabledColors,
     description: normalizeDescription(rawItem.description),
   };
 };
 
-const buildCartItem = (product: any, size: string, color: string, quantity: number, cartItemId?: string): CartItem => ({
-  cartItemId: cartItemId ?? createCartItemId(),
-  _id: product._id,
-  name: normalizeLocalizedText(product.name),
-  price: typeof product.price === 'number' ? product.price : 0,
-  originalPrice: typeof product.originalPrice === 'number' ? product.originalPrice : undefined,
-  discount: typeof product.discount === 'number' ? product.discount : 0,
-  images: normalizeStringArray(product.images),
-  category: typeof product.category === 'string' ? product.category : '',
-  size,
-  color,
-  quantity,
-  availableSizes: normalizeStringArray(product.size),
-  availableColors: normalizeStringArray(product.color),
-  description: normalizeDescription(product.description),
-});
+const buildCartItem = (product: any, size: string, color: string, quantity: number, cartItemId?: string): CartItem => {
+  const colorState = getColorState(product as Record<string, unknown>);
+
+  return {
+    cartItemId: cartItemId ?? createCartItemId(),
+    _id: product._id,
+    name: normalizeLocalizedText(product.name),
+    price: typeof product.price === 'number' ? product.price : 0,
+    originalPrice: typeof product.originalPrice === 'number' ? product.originalPrice : undefined,
+    discount: typeof product.discount === 'number' ? product.discount : 0,
+    images: normalizeStringArray(product.images),
+    category: typeof product.category === 'string' ? product.category : '',
+    size,
+    color,
+    quantity,
+    availableSizes: normalizeStringArray(product.size),
+    availableColors: colorState.availableColors,
+    allColors: colorState.allColors,
+    disabledColors: colorState.disabledColors,
+    description: normalizeDescription(product.description),
+  };
+};
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -205,7 +240,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             }
 
             const refreshedAvailableSizes = normalizeStringArray(product.size);
-            const refreshedAvailableColors = normalizeStringArray(product.color);
+            const refreshedColorState = getColorState(product as Record<string, unknown>);
             const refreshedImages = normalizeStringArray(product.images);
 
             return {
@@ -220,7 +255,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               size: item.size && refreshedAvailableSizes.includes(item.size) ? item.size : '',
               color: item.color,
               availableSizes: refreshedAvailableSizes,
-              availableColors: refreshedAvailableColors,
+              availableColors: refreshedColorState.availableColors,
+              allColors: refreshedColorState.allColors,
+              disabledColors: refreshedColorState.disabledColors,
               description: normalizeDescription(product.description) ?? item.description,
             };
           })

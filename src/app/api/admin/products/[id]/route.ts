@@ -28,6 +28,7 @@ export async function GET(
           originalPrice: 1,
           size: 1,
           color: 1,
+          disabledColors: 1,
           discount: 1,
           category: 1,
           availability: 1,
@@ -124,6 +125,9 @@ export async function PUT(
     if (updateData.color && Array.isArray(updateData.color)) {
       updateData.color = updateData.color.filter((c: string) => c && c.trim() !== '');
     }
+    if (updateData.disabledColors && Array.isArray(updateData.disabledColors)) {
+      updateData.disabledColors = updateData.disabledColors.filter((c: string) => c && c.trim() !== '');
+    }
     if (updateData.size && Array.isArray(updateData.size)) {
       updateData.size = updateData.size.filter((s: string) => s && s.trim() !== '');
     }
@@ -148,6 +152,10 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    updateData.disabledColors = Array.isArray(updateData.disabledColors)
+      ? updateData.disabledColors.filter((color: string) => updateData.color.includes(color))
+      : [];
     
     const [meta] = await Product.aggregate([
       { $match: { _id: productObjectId } },

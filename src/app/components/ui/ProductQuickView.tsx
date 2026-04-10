@@ -28,12 +28,18 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
 
   const productName = product.name?.[lang] || product.name?.fr || t("productName");
   const availableSizes = new Set(Array.isArray(product.size) ? product.size : []);
-  const availableColors = [
-    t("red"), t("blue"), t("green"), t("black"), t("white"), t("gray")
-  ];
+  const rawColors = Array.isArray(product.color) ? (product.color as unknown[]) : [];
+  const rawDisabledColors = Array.isArray(product.disabledColors)
+    ? (product.disabledColors as unknown[])
+    : [];
+  const allColors: string[] = rawColors.filter((color: unknown): color is string => typeof color === 'string');
+  const disabledColors = new Set(
+    rawDisabledColors.filter((color: unknown): color is string => typeof color === 'string')
+  );
+  const selectedColorAvailable = !!selectedColor && !disabledColors.has(selectedColor);
 
   const handleAddToCart = () => {
-    if (!selectedSize || !selectedColor) {
+    if (!selectedSize || !selectedColor || !selectedColorAvailable) {
       alert(t("pleaseSelectSizeAndColor"));
       return;
     }
@@ -168,19 +174,31 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                     Couleur *
                   </label>
                   <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                    {availableColors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`p-2 sm:p-4 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                          selectedColor === color
-                            ? 'border-black bg-black text-white shadow-lg scale-105'
-                            : 'border-gray-200 text-gray-700 hover:border-black hover:bg-gray-50 hover:shadow-md'
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
+                    {allColors.map((color) => {
+                      const isAvailable = !disabledColors.has(color);
+
+                      return (
+                        <button
+                          type="button"
+                          key={color}
+                          onClick={() => {
+                            if (isAvailable) {
+                              setSelectedColor(color);
+                            }
+                          }}
+                          disabled={!isAvailable}
+                          className={`p-2 sm:p-4 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${
+                            selectedColor === color && isAvailable
+                              ? 'border-black bg-black text-white shadow-lg scale-105'
+                              : isAvailable
+                                ? 'transform hover:scale-105 border-gray-200 text-gray-700 hover:border-black hover:bg-gray-50 hover:shadow-md'
+                                : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -212,7 +230,7 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                 {/* Modern add to cart button */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={!selectedSize || !selectedColor || isAddingToCart}
+                  disabled={!selectedSize || !selectedColor || !selectedColorAvailable || isAddingToCart}
                   className="w-full px-4 sm:px-8 py-3 sm:py-5 bg-black text-white rounded-xl sm:rounded-2xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold text-sm sm:text-lg flex items-center justify-center space-x-2 sm:space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
                 >
                   {isAddingToCart ? (

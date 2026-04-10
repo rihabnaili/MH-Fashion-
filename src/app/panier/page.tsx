@@ -30,10 +30,13 @@ const CartItemCard = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const productImages = item.images && item.images.length > 0 ? item.images : ['/home-media/set.jpg'];
   const availableSizes = new Set(item.availableSizes || []);
-  const availableColors = new Set(item.availableColors || []);
-  const colorOptions = item.color && !availableColors.has(item.color)
-    ? [...(item.availableColors || []), item.color]
+  const allColors = item.allColors && item.allColors.length > 0
+    ? item.allColors
     : item.availableColors || [];
+  const availableColors = new Set(item.availableColors || []);
+  const colorOptions = item.color && !allColors.includes(item.color)
+    ? [...allColors, item.color]
+    : allColors;
   const selectedColorUnavailable = !!item.color && !availableColors.has(item.color);
   
   const goToNextImage = () => {

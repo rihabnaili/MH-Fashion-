@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
     if (product.color && Array.isArray(product.color)) {
       product.color = product.color.filter((c: string) => c && c.trim() !== '');
     }
+    if (product.disabledColors && Array.isArray(product.disabledColors)) {
+      product.disabledColors = product.disabledColors.filter((c: string) => c && c.trim() !== '');
+    }
     if (product.size && Array.isArray(product.size)) {
       product.size = product.size.filter((s: string) => s && s.trim() !== '');
     }
@@ -79,6 +82,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    product.disabledColors = Array.isArray(product.disabledColors)
+      ? product.disabledColors.filter((color: string) => product.color.includes(color))
+      : [];
     
     // Validate name structure
     if (!product.name.fr || !product.name.ar) {
@@ -195,6 +202,7 @@ export async function GET(request: NextRequest) {
             price: 1,
             category: 1,
             availability: 1,
+            disabledColors: 1,
             createdAt: 1,
             imageCount: { $size: { $ifNull: ['$images', []] } }
           }

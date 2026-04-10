@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
             availability: 1,
             size: 1,
             color: 1,
+            disabledColors: 1,
             description: 1,
             createdAt: 1,
             imageCount: { $size: { $ifNull: ['$images', []] } }
@@ -139,6 +140,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    body.disabledColors = Array.isArray(body.disabledColors)
+      ? body.disabledColors.filter((color: string) => body.color.includes(color))
+      : [];
     
     const product = new Product(body);
     await product.save();
