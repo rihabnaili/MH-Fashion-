@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 
 // GET single product
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -279,24 +279,28 @@ export async function PUT(
 
 // DELETE product
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     await connectDB();
-    
-    // Find product
-    const product = await Product.findById(params.id);
-    if (!product) {
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product id' },
+        { status: 400 }
+      );
+    }
+
+    const deleteResult = await Product.deleteOne({ _id: params.id });
+
+    if (deleteResult.deletedCount === 0) {
       return NextResponse.json(
         { success: false, message: 'Product not found' },
         { status: 404 }
       );
     }
-    
-    // Delete product from database (images are stored in DB, so they'll be deleted automatically)
-    await Product.findByIdAndDelete(params.id);
-    
+
     return NextResponse.json({
       success: true,
       message: 'Product deleted successfully'

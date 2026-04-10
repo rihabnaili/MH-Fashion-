@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
 import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
-import ProductImageGallery from './ProductImageGallery';
 import Link from 'next/link';
 
 interface CartModalProps {
@@ -21,12 +20,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
   if (!isOpen) return null;
 
-  const handleQuantityChange = (itemId: string, size: string, color: string, newQuantity: number) => {
-    updateQuantity(itemId, size, color, newQuantity);
+  const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
+    updateQuantity(cartItemId, newQuantity);
   };
 
-  const handleRemoveItem = (itemId: string, size: string, color: string) => {
-    removeFromCart(itemId, size, color);
+  const handleRemoveItem = (cartItemId: string) => {
+    removeFromCart(cartItemId);
   };
 
   const totalItems = getTotalItems();
@@ -80,8 +79,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               </div>
             ) : (
               <div className="space-y-2 sm:space-y-4">
-                {items.map((item, index) => (
-                  <div key={`${item._id}-${item.size}-${item.color}`} className="border border-gray-200 rounded-lg overflow-hidden">
+                {items.map((item) => (
+                  <div key={item.cartItemId} className="border border-gray-200 rounded-lg overflow-hidden">
                     {/* Mobile: Stacked Layout */}
                     <div className="block sm:hidden">
                       {/* Product Image and Basic Info */}
@@ -121,7 +120,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       <div className="flex items-center justify-between px-3 pb-3 border-t border-gray-100">
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => handleQuantityChange(item._id, item.size, item.color, item.quantity - 1)}
+                            type="button"
+                            onClick={() => handleQuantityChange(item.cartItemId, item.quantity - 1)}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                           >
                             <Minus className="w-3 h-3 text-gray-600" />
@@ -130,7 +130,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => handleQuantityChange(item._id, item.size, item.color, item.quantity + 1)}
+                            type="button"
+                            onClick={() => handleQuantityChange(item.cartItemId, item.quantity + 1)}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                           >
                             <Plus className="w-3 h-3 text-gray-600" />
@@ -141,7 +142,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                             {(item.price * item.quantity).toFixed(2)} {t('dt')}
                           </span>
                           <button
-                            onClick={() => handleRemoveItem(item._id, item.size, item.color)}
+                            type="button"
+                            onClick={() => handleRemoveItem(item.cartItemId)}
                             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -194,7 +196,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       {/* Quantity Controls */}
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleQuantityChange(item._id, item.size, item.color, item.quantity - 1)}
+                          type="button"
+                          onClick={() => handleQuantityChange(item.cartItemId, item.quantity - 1)}
                           className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                         >
                           <Minus className="w-4 h-4 text-gray-600" />
@@ -203,7 +206,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => handleQuantityChange(item._id, item.size, item.color, item.quantity + 1)}
+                          type="button"
+                          onClick={() => handleQuantityChange(item.cartItemId, item.quantity + 1)}
                           className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                         >
                           <Plus className="w-4 h-4 text-gray-600" />
@@ -219,7 +223,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
                       {/* Remove Button */}
                       <button
-                        onClick={() => handleRemoveItem(item._id, item.size, item.color)}
+                        type="button"
+                        onClick={() => handleRemoveItem(item.cartItemId)}
                         className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />

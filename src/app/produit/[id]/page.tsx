@@ -98,12 +98,7 @@ export default function ProductDetailPage() {
 
     setIsAddingToCart(true);
     try {
-      await addToCart(
-        product._id,
-        selectedSize,
-        selectedColor,
-        quantity
-      );
+      addToCart(product, selectedSize, selectedColor, quantity);
       // Show success message
       alert(t('addedToCart'));
     } catch (error) {

@@ -39,20 +39,40 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     const [products, total] = await Promise.all([
-      Product.find(query)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .select('name price originalPrice discount category availability size color description createdAt')
-        .lean(),
+      Product.aggregate([
+        { $match: query },
+        { $sort: sort },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $project: {
+            name: 1,
+            price: 1,
+            originalPrice: 1,
+            discount: 1,
+            category: 1,
+            availability: 1,
+            size: 1,
+            color: 1,
+            description: 1,
+            createdAt: 1,
+            imageCount: { $size: { $ifNull: ['$images', []] } }
+          }
+        }
+      ]),
       Product.countDocuments(query)
     ]);
-    
-    // Avoid sending base64 images in list responses (too large / slow on serverless).
-    const productsWithImageUrls = products.map((product: any) => ({
-      ...product,
-      images: [`/api/images/${product._id}/0`]
-    }));
+
+    const productsWithImageUrls = products.map((product: any) => {
+      const imageCount = typeof product.imageCount === 'number' ? product.imageCount : 0;
+
+      return {
+        ...product,
+        images: imageCount > 0
+          ? Array.from({ length: imageCount }, (_, index) => `/api/images/${product._id}/${index}`)
+          : ['/home-media/set.jpg']
+      };
+    });
     
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
