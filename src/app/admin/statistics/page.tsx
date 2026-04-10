@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { 
   TrendingUp, 
   ShoppingCart, 
@@ -52,11 +52,7 @@ export default function StatisticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string>('all');
 
-  useEffect(() => {
-    fetchStatistics();
-  }, [period]);
-
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -74,7 +70,11 @@ export default function StatisticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', {
