@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import mongoose from 'mongoose';
 import sharp from 'sharp';
+import { PRODUCT_IMAGE_VARIANTS, ProductImageVariant } from '@/lib/productImageUrls';
+import { readStoredProductImageVariant } from '@/lib/productImageStorage';
 
 export const runtime = 'nodejs';
 
@@ -30,9 +32,30 @@ export async function GET(
       );
     }
 
+    const variant = request.nextUrl.searchParams.get('v') === 'detail'
+      ? 'detail'
+      : 'thumb';
+    const productObjectId = new mongoose.Types.ObjectId(params.productId);
+
+    const storedVariant = await readStoredProductImageVariant(
+      productObjectId,
+      imageIndex,
+      variant
+    );
+
+    if (storedVariant) {
+      return new NextResponse(storedVariant.data, {
+        status: 200,
+        headers: {
+          'Content-Type': storedVariant.contentType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
+    }
+
     // Fetch only the requested image element (avoid loading the full base64 array).
     const [result] = await Product.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(params.productId) } },
+      { $match: { _id: productObjectId } },
       { $project: { image: { $arrayElemAt: ['$images', imageIndex] } } }
     ]);
 
@@ -60,32 +83,17 @@ export async function GET(
     
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(base64Data, 'base64');
-    const requestedWidth = Number(searchParams.get('w'));
-    const requestedQuality = Number(searchParams.get('q'));
-    const width = Number.isFinite(requestedWidth)
-      ? Math.min(Math.max(requestedWidth, 64), 1600)
-      : null;
-    const quality = Number.isFinite(requestedQuality)
-      ? Math.min(Math.max(requestedQuality, 45), 90)
-      : 72;
-    const shouldTransform = width !== null || searchParams.has('q');
-    let outputBuffer = imageBuffer;
-    let contentType = mimeType;
-
-    if (shouldTransform) {
-      let transformer = sharp(imageBuffer).rotate();
-
-      if (width !== null) {
-        transformer = transformer.resize({
-          width,
-          fit: 'inside',
-          withoutEnlargement: true,
-        });
-      }
-
-      outputBuffer = await transformer.webp({ quality }).toBuffer();
-      contentType = 'image/webp';
-    }
+    const legacyVariant = PRODUCT_IMAGE_VARIANTS[variant as ProductImageVariant];
+    const outputBuffer = await sharp(imageBuffer)
+      .rotate()
+      .resize({
+        width: legacyVariant.width,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: legacyVariant.quality })
+      .toBuffer();
+    const contentType = 'image/webp';
     
     // Return image with proper content type
     return new NextResponse(outputBuffer, {

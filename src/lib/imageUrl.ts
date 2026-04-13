@@ -1,21 +1,25 @@
+import {
+  PRODUCT_IMAGE_FALLBACK,
+  ProductImageVariant,
+  resolveRequestedProductImageVariant,
+} from '@/lib/productImageUrls';
+
 interface ProductImageOptions {
   width?: number;
   quality?: number;
+  variant?: ProductImageVariant;
 }
 
 export function buildProductImageUrl(
   src?: string,
-  { width, quality }: ProductImageOptions = {}
+  { width, variant }: ProductImageOptions = {}
 ) {
-  const fallback = '/home-media/set.jpg';
-  const safeSrc = src || fallback;
+  const safeSrc = src || PRODUCT_IMAGE_FALLBACK;
 
-  const params = new URLSearchParams();
-  if (width) params.set('w', String(width));
-  if (quality) params.set('q', String(quality));
+  if (!safeSrc.startsWith('/api/images/')) {
+    return safeSrc;
+  }
 
-  const query = params.toString();
-  if (!query) return safeSrc;
-
-  return `${safeSrc}${safeSrc.includes('?') ? '&' : '?'}${query}`;
+  const resolvedVariant = resolveRequestedProductImageVariant(width, variant);
+  return `${safeSrc}${safeSrc.includes('?') ? '&' : '?'}v=${resolvedVariant}`;
 }

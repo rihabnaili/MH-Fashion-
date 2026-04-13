@@ -41,8 +41,7 @@ export default function ProductImageGallery({ images, productName, className = '
   };
 
   const mainImageSrc = buildProductImageUrl(images[currentImageIndex], {
-    width: 900,
-    quality: 70,
+    variant: 'detail',
   });
 
   return (
@@ -66,7 +65,7 @@ export default function ProductImageGallery({ images, productName, className = '
               type="button"
               onClick={goToPrevious}
               aria-label={lang === 'ar' ? 'الصورة السابقة' : 'Image precedente'}
-              className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'right-3' : 'left-3'}`}
+              className={`absolute top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-3 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation pointer-events-auto hover:bg-white ${lang === 'ar' ? 'right-3' : 'left-3'}`}
             >
               <ChevronLeft className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
             </button>
@@ -74,7 +73,7 @@ export default function ProductImageGallery({ images, productName, className = '
               type="button"
               onClick={goToNext}
               aria-label={lang === 'ar' ? 'الصورة التالية' : 'Image suivante'}
-              className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'left-3' : 'right-3'}`}
+              className={`absolute top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/95 p-3 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation pointer-events-auto hover:bg-white ${lang === 'ar' ? 'left-3' : 'right-3'}`}
             >
               <ChevronRight className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
             </button>
@@ -97,7 +96,7 @@ export default function ProductImageGallery({ images, productName, className = '
               }`}
             >
               <Image
-                src={buildProductImageUrl(image, { width: 128, quality: 52 })}
+                src={buildProductImageUrl(image, { variant: 'thumb' })}
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
