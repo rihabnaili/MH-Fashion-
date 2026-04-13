@@ -74,6 +74,49 @@ export async function createStoredImageVariants(buffer: Buffer): Promise<StoredI
   };
 }
 
+function coerceStoredBinaryToBuffer(value: unknown) {
+  if (!value) {
+    return null;
+  }
+
+  if (Buffer.isBuffer(value)) {
+    return Buffer.from(value);
+  }
+
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value);
+  }
+
+  if (typeof value === 'object') {
+    const candidate = value as {
+      buffer?: unknown;
+      data?: unknown;
+    };
+
+    if (Buffer.isBuffer(candidate.buffer)) {
+      return Buffer.from(candidate.buffer);
+    }
+
+    if (candidate.buffer instanceof Uint8Array) {
+      return Buffer.from(candidate.buffer);
+    }
+
+    if (Buffer.isBuffer(candidate.data)) {
+      return Buffer.from(candidate.data);
+    }
+
+    if (candidate.data instanceof Uint8Array) {
+      return Buffer.from(candidate.data);
+    }
+
+    if (Array.isArray(candidate.data)) {
+      return Buffer.from(candidate.data);
+    }
+  }
+
+  return null;
+}
+
 export async function fileToProductImageSource(file: File): Promise<ProductImageSource> {
   const bytes = await file.arrayBuffer();
   return {
@@ -134,12 +177,14 @@ export async function readStoredProductImageVariant(
   ).lean()) as { variants?: Partial<StoredImageVariants> } | null;
 
   const variantData = doc?.variants?.[variant];
-  if (!variantData?.data || !variantData?.contentType) {
+  const buffer = coerceStoredBinaryToBuffer(variantData?.data);
+
+  if (!buffer || !variantData?.contentType) {
     return null;
   }
 
   return {
-    data: Buffer.from(variantData.data),
+    data: buffer,
     contentType: variantData.contentType,
   };
 }
@@ -156,11 +201,11 @@ export async function loadStoredProductImages(productId: mongoose.Types.ObjectId
     position: doc.position,
     variants: {
       thumb: {
-        data: Buffer.from(doc.variants.thumb.data),
+        data: coerceStoredBinaryToBuffer(doc.variants.thumb.data) ?? Buffer.alloc(0),
         contentType: doc.variants.thumb.contentType,
       },
       detail: {
-        data: Buffer.from(doc.variants.detail.data),
+        data: coerceStoredBinaryToBuffer(doc.variants.detail.data) ?? Buffer.alloc(0),
         contentType: doc.variants.detail.contentType,
       },
     },

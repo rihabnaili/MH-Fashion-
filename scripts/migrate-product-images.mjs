@@ -10,8 +10,8 @@ const PRODUCT_IMAGE_VARIANTS = {
     quality: 64,
   },
   detail: {
-    width: 1100,
-    quality: 74,
+    width: 960,
+    quality: 70,
   },
 };
 
