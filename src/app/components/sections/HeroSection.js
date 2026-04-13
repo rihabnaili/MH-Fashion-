@@ -39,19 +39,19 @@ export default function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-[#efe2d4] pt-20">
-      <div className="relative min-h-[74svh]">
+      <div className="relative min-h-[430px] sm:min-h-[500px] lg:min-h-0 lg:aspect-[1920/559]">
         <Image
           src="/home-media/main_page.png"
           alt="MH Fashion Hero"
           fill
-          className="object-cover object-center"
+          className="bg-[#efe2d4] object-cover object-center lg:object-contain"
           priority
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#f8efe6]/95 via-[#f8efe6]/62 to-[#8f6a50]/10" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#f8efe6]/25 via-transparent to-transparent" />
 
-        <div className="relative mx-auto flex min-h-[74svh] max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex min-h-[430px] max-w-7xl items-center px-4 sm:min-h-[500px] sm:px-6 lg:h-full lg:min-h-0 lg:px-8">
           <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
             <div className={`max-w-2xl ${isRTL ? "lg:mr-auto text-right" : "text-left"}`}>
               <p className="mb-5 text-xs uppercase tracking-[0.44em] text-[#9c7356]">
