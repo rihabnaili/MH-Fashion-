@@ -44,7 +44,7 @@ export default function HeroSection() {
           src="/home-media/main_page.png"
           alt="MH Fashion Hero"
           fill
-          className="bg-[#efe2d4] object-cover object-center lg:object-contain"
+          className="bg-[#efe2d4] object-cover object-top md:object-contain md:object-center"
           priority
           sizes="100vw"
         />

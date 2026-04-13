@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -15,6 +15,10 @@ interface ProductImageGalleryProps {
 export default function ProductImageGallery({ images, productName, className = '' }: ProductImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { lang } = useLanguage();
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [images]);
 
   if (!images || images.length === 0) {
     return (
@@ -37,20 +41,21 @@ export default function ProductImageGallery({ images, productName, className = '
   };
 
   const mainImageSrc = buildProductImageUrl(images[currentImageIndex], {
-    width: 1200,
-    quality: 78,
+    width: 900,
+    quality: 70,
   });
 
   return (
     <div className={`relative group ${className}`}>
       {/* Main Image */}
-      <div className="relative w-full h-64 md:h-80 lg:h-96 bg-gray-100 rounded-lg overflow-hidden">
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-[#f6f1ea]">
         <Image
           src={mainImageSrc}
           alt={`${productName} - Image ${currentImageIndex + 1}`}
           fill
-          className="object-cover transition-all duration-300"
+          className="object-contain p-4 transition-all duration-300 sm:p-6"
           priority={currentImageIndex === 0}
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 640px"
           unoptimized
         />
         
@@ -58,14 +63,18 @@ export default function ProductImageGallery({ images, productName, className = '
         {images.length > 1 && (
           <>
             <button
+              type="button"
               onClick={goToPrevious}
-              className={`absolute top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${lang === 'ar' ? 'right-2' : 'left-2'}`}
+              aria-label={lang === 'ar' ? 'الصورة السابقة' : 'Image precedente'}
+              className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'right-3' : 'left-3'}`}
             >
               <ChevronLeft className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
             </button>
             <button
+              type="button"
               onClick={goToNext}
-              className={`absolute top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${lang === 'ar' ? 'left-2' : 'right-2'}`}
+              aria-label={lang === 'ar' ? 'الصورة التالية' : 'Image suivante'}
+              className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'left-3' : 'right-3'}`}
             >
               <ChevronRight className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
             </button>
@@ -78,6 +87,7 @@ export default function ProductImageGallery({ images, productName, className = '
         <div className="mt-4 flex justify-center space-x-2">
           {images.map((image, index) => (
             <button
+              type="button"
               key={index}
               onClick={() => goToImage(index)}
               className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
@@ -87,7 +97,7 @@ export default function ProductImageGallery({ images, productName, className = '
               }`}
             >
               <Image
-                src={buildProductImageUrl(image, { width: 160, quality: 60 })}
+                src={buildProductImageUrl(image, { width: 128, quality: 52 })}
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
@@ -105,7 +115,7 @@ export default function ProductImageGallery({ images, productName, className = '
 
       {/* Image Counter */}
       {images.length > 1 && (
-        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+        <div className="absolute right-2 top-2 z-10 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
           {currentImageIndex + 1} / {images.length}
         </div>
       )}

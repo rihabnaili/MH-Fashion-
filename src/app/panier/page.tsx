@@ -68,14 +68,18 @@ const CartItemCard = ({
               {productImages.length > 1 && (
                 <>
                   <button
+                    type="button"
                     onClick={goToPreviousImage}
-                    className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 ${lang === 'ar' ? 'right-4' : 'left-4'}`}
+                    aria-label={lang === 'ar' ? 'الصورة السابقة' : 'Image precedente'}
+                    className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'right-4' : 'left-4'}`}
                   >
                     <ChevronLeft className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
                   </button>
                   <button
+                    type="button"
                     onClick={goToNextImage}
-                    className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 ${lang === 'ar' ? 'left-4' : 'right-4'}`}
+                    aria-label={lang === 'ar' ? 'الصورة التالية' : 'Image suivante'}
+                    className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'left-4' : 'right-4'}`}
                   >
                     <ChevronRight className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
                   </button>
@@ -88,6 +92,7 @@ const CartItemCard = ({
               <div className="px-4 py-3 flex justify-center space-x-2 overflow-x-auto bg-gray-50">
                 {productImages.map((image, imgIndex) => (
                   <button
+                    type="button"
                     key={imgIndex}
                     onClick={() => goToImage(imgIndex)}
                     className={`relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded overflow-hidden border-2 transition-all duration-200 ${

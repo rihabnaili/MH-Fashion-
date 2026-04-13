@@ -46,25 +46,17 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        console.log('Fetching product with ID:', params.id);
         const response = await fetch(`/api/products/${params.id}`);
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          console.error('Server response:', {
-            status: response.status,
-            statusText: response.statusText,
-            data: errorData
-          });
           throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Response data:', data);
         
         if (data.success) {
           setProduct(data.data);
-          console.log('Product data set successfully:', data.data);
         } else {
           throw new Error(data.message || 'Failed to fetch product');
         }
@@ -77,10 +69,8 @@ export default function ProductDetailPage() {
     };
 
     if (params.id) {
-      console.log('Starting product fetch for ID:', params.id);
       fetchProduct();
     } else {
-      console.error('No product ID provided');
       setError('No product ID provided');
       setIsLoading(false);
     }
@@ -143,8 +133,8 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <div className="mx-auto max-w-7xl px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 lg:px-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
           {/* Left side - Product Images */}
           <div className="w-full lg:w-1/2">
             <ProductImageGallery
@@ -155,7 +145,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Right side - Product Info */}
-          <div className="w-full lg:w-1/2 space-y-6">
+          <div className="w-full space-y-6 lg:w-1/2">
             {/* Product Title and Price */}
             <div className="space-y-4">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{productName}</h1>
