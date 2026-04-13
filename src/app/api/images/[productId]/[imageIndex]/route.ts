@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import mongoose from 'mongoose';
+import sharp from 'sharp';
+
+export const runtime = 'nodejs';
 
 // GET image from MongoDB as base64
 export async function GET(
@@ -10,6 +13,7 @@ export async function GET(
 ) {
   try {
     await connectDB();
+    const { searchParams } = new URL(request.url);
 
     if (!mongoose.Types.ObjectId.isValid(params.productId)) {
       return NextResponse.json(
@@ -56,12 +60,38 @@ export async function GET(
     
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(base64Data, 'base64');
+    const requestedWidth = Number(searchParams.get('w'));
+    const requestedQuality = Number(searchParams.get('q'));
+    const width = Number.isFinite(requestedWidth)
+      ? Math.min(Math.max(requestedWidth, 64), 1600)
+      : null;
+    const quality = Number.isFinite(requestedQuality)
+      ? Math.min(Math.max(requestedQuality, 45), 90)
+      : 72;
+    const shouldTransform = width !== null || searchParams.has('q');
+    let outputBuffer = imageBuffer;
+    let contentType = mimeType;
+
+    if (shouldTransform) {
+      let transformer = sharp(imageBuffer).rotate();
+
+      if (width !== null) {
+        transformer = transformer.resize({
+          width,
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
+      }
+
+      outputBuffer = await transformer.webp({ quality }).toBuffer();
+      contentType = 'image/webp';
+    }
     
     // Return image with proper content type
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(outputBuffer, {
       status: 200,
       headers: {
-        'Content-Type': mimeType,
+        'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });

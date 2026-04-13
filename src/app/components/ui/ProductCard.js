@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { useLanguage } from "@/app/context/LanguageContext";
 import Image from "next/image";
+import { buildProductImageUrl } from "@/lib/imageUrl";
 
 const ProductCard = ({ product, className = "" }) => {
   const t = useTranslations();
@@ -22,7 +23,10 @@ const ProductCard = ({ product, className = "" }) => {
       : 0;
 
   const productName = product.name?.[lang] || product.name?.fr || t("productName");
-  const productImage = product.images?.[0] || "/home-media/set.jpg";
+  const productImage = buildProductImageUrl(product.images?.[0], {
+    width: 480,
+    quality: 68,
+  });
   const actionLabel = lang === "ar" ? "اكتشف المنتج" : "Voir le produit";
 
   return (
@@ -48,6 +52,7 @@ const ProductCard = ({ product, className = "" }) => {
             className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
             onError={handleImageError}
             sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
+            unoptimized
           />
         )}
       </div>

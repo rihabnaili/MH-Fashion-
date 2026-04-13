@@ -6,7 +6,8 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
-import { Loader2, AlertCircle } from 'lucide-react';
+import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
+import { AlertCircle } from 'lucide-react';
 
 // Map category slugs to actual category values
 const categorySlugMap: Record<string, string> = {
@@ -44,7 +45,7 @@ export default function CategoryPage() {
   // Fetch products for this category
   const { products, isLoading, error, pagination, fetchProducts } = useProducts({
     category: categoryValue,
-    limit: 20,
+    limit: 12,
     sortBy,
     sortOrder,
     autoFetch: true
@@ -70,10 +71,16 @@ export default function CategoryPage() {
     return (
       <div className="min-h-screen bg-offwhite pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
-            <span className="ml-3 text-gray-600">{t("loadingProducts")}</span>
+          <div className="mb-8">
+            <div className="h-10 w-48 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="mt-4 h-5 w-32 animate-pulse rounded bg-[#efe2d4]" />
           </div>
+
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#f5ede4]" />
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );

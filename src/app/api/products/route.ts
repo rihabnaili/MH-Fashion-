@@ -39,27 +39,47 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     const [products, total] = await Promise.all([
-      Product.find(query)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .select('name price originalPrice discount category availability size color description createdAt')
-        .lean(),
+      Product.aggregate([
+        { $match: query },
+        { $sort: sort },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $project: {
+            name: 1,
+            price: 1,
+            originalPrice: 1,
+            discount: 1,
+            category: 1,
+            availability: 1,
+            size: 1,
+            color: 1,
+            description: 1,
+            createdAt: 1,
+            imageCount: { $size: { $ifNull: ['$images', []] } }
+          }
+        }
+      ]),
       Product.countDocuments(query)
     ]);
     
-    // Avoid sending base64 images in list responses (too large / slow on serverless).
-    const productsWithImageUrls = products.map((product: any) => ({
-      ...product,
-      images: [`/api/images/${product._id}/0`]
-    }));
+    const productsWithImageUrls = products.map((product: any) => {
+      const imageCount = typeof product.imageCount === 'number' ? product.imageCount : 0;
+
+      return {
+        ...product,
+        images: imageCount > 0
+          ? [`/api/images/${product._id}/0`]
+          : ['/home-media/set.jpg']
+      };
+    });
     
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         products: productsWithImageUrls,
@@ -73,6 +93,8 @@ export async function GET(request: NextRequest) {
         }
       }
     });
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    return response;
     
   } catch (error) {
     console.error('Error fetching products:', error);

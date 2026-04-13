@@ -119,7 +119,7 @@ export default function FeaturedProducts() {
   const { lang, isRTL } = useLanguage();
   const copy = homeCopy[lang] || homeCopy.fr;
   const { products, isLoading, error, pagination } = useProducts({
-    limit: 40,
+    limit: 24,
     sortBy: "createdAt",
     sortOrder: "desc",
   });

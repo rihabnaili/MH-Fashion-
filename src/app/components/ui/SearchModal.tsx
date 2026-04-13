@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 import Image from "next/image";
+import { buildProductImageUrl } from "@/lib/imageUrl";
 
 type SearchModalProps = {
   isOpen: boolean;
@@ -147,11 +148,15 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                         <div className="relative">
                           <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
                             <Image
-                              src={product.images?.[0] || '/home-media/set.jpg'}
+                              src={buildProductImageUrl(product.images?.[0], {
+                                width: 320,
+                                quality: 64,
+                              })}
                               alt={productName}
                               fill
                               className="object-contain bg-gray-100"
                               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              unoptimized
                             />
                           </div>
                           <div className="w-full h-0.5 bg-black"></div>

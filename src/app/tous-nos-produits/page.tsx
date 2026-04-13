@@ -6,6 +6,7 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
+import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 function AllProductsContent() {
@@ -29,7 +30,7 @@ function AllProductsContent() {
   const { products, isLoading, error, pagination, fetchProducts } = useProducts({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     search: searchQuery || undefined,
-    limit: 24,
+    limit: 12,
     sortBy,
     sortOrder,
     autoFetch: true
@@ -74,10 +75,23 @@ function AllProductsContent() {
     return (
       <div className="min-h-screen bg-offwhite pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
-            <span className="ml-3 text-gray-600">{t("loadingProducts")}</span>
+          <div className="mb-8">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#efe2d4]" />
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#efe2d4]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#f5ede4]" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );
@@ -221,9 +235,23 @@ export default function AllProductsPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-offwhite pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
+          <div className="mb-8">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#efe2d4]" />
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#efe2d4]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#f5ede4]" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     }>

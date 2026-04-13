@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { buildProductImageUrl } from '@/lib/imageUrl';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -35,16 +36,22 @@ export default function ProductImageGallery({ images, productName, className = '
     setCurrentImageIndex(index);
   };
 
+  const mainImageSrc = buildProductImageUrl(images[currentImageIndex], {
+    width: 1200,
+    quality: 78,
+  });
+
   return (
     <div className={`relative group ${className}`}>
       {/* Main Image */}
       <div className="relative w-full h-64 md:h-80 lg:h-96 bg-gray-100 rounded-lg overflow-hidden">
         <Image
-          src={images[currentImageIndex]}
+          src={mainImageSrc}
           alt={`${productName} - Image ${currentImageIndex + 1}`}
           fill
           className="object-cover transition-all duration-300"
           priority={currentImageIndex === 0}
+          unoptimized
         />
         
         {/* Navigation Arrows */}
@@ -80,10 +87,11 @@ export default function ProductImageGallery({ images, productName, className = '
               }`}
             >
               <Image
-                src={image}
+                src={buildProductImageUrl(image, { width: 160, quality: 60 })}
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
+                unoptimized
               />
               {index === currentImageIndex && (
                 <div className="absolute inset-0 bg-gold/20 flex items-center justify-center">

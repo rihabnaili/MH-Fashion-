@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { Plus, Minus, Trash2, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { buildProductImageUrl } from '@/lib/imageUrl';
 
 // Cart Item Component
 const CartItemCard = ({ 
@@ -52,11 +53,15 @@ const CartItemCard = ({
             {/* Main Image */}
             <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
               <Image
-                src={productImages[currentImageIndex]}
+                src={buildProductImageUrl(productImages[currentImageIndex], {
+                  width: 900,
+                  quality: 76,
+                })}
                 alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                 fill
                 className="object-contain bg-gray-100"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                unoptimized
               />
               
               {/* Navigation Arrows */}
@@ -92,10 +97,11 @@ const CartItemCard = ({
                     }`}
                   >
                     <Image
-                      src={image}
+                      src={buildProductImageUrl(image, { width: 160, quality: 60 })}
                       alt={`${item.name[lang as 'fr' | 'ar'] || item.name.fr} - Thumbnail ${imgIndex + 1}`}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   </button>
                 ))}
