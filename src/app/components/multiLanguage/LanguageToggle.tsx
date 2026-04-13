@@ -20,20 +20,20 @@ export default function LanguageToggle() {
 
   return (
     <Menu as="div" className="relative inline-block text-left">
-      <Menu.Button className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded text-sm text-black bg-white hover:border-black transition-colors">
+      <Menu.Button className="flex items-center gap-2 rounded-full border border-[#decbbb] bg-white/95 px-3 py-2 text-sm text-[#38261a] shadow-[0_12px_30px_-24px_rgba(70,40,20,0.55)] transition-colors hover:border-[#b88c69]">
         <span className="text-sm">{flags[lang]}</span>
         <ChevronDown className={`w-3 h-3 ${lang === 'ar' ? 'rotate-180' : ''}`} />
       </Menu.Button>
 
-      <Menu.Items className="absolute right-0 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-gray-200 z-50">
+      <Menu.Items className="absolute right-0 z-50 mt-2 w-32 origin-top-right overflow-hidden rounded-2xl border border-[#e8d8ca] bg-[#fffaf5] shadow-[0_25px_60px_-35px_rgba(65,37,18,0.45)]">
         {languages.map(({ code, label }) => (
           <Menu.Item key={code}>
             {({ active }) => (
               <button
                 onClick={() => setLang(code)}
                 className={`${
-                  active ? 'bg-gray-100 text-black' : 'text-black'
-                } flex items-center w-full px-4 py-2 text-sm transition-colors ${
+                  active ? 'bg-[#f4eadf] text-[#24160d]' : 'text-[#24160d]'
+                } flex w-full items-center px-4 py-3 text-sm transition-colors ${
                   code === 'ar' ? 'font-arabic' : 'font-montserrat'
                 }`}
               >

@@ -1,13 +1,29 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Cinzel, Montserrat, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import MainLayout from "./components/layouts/MainLayout";
 import { LanguageProvider } from "./context/LanguageContext";
 import { CartProvider } from "./context/CartContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
-export const metadata = {
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+  display: "swap",
+});
+
+const notoSansArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-noto-sans-arabic",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
   title: "MH Fashion",
   description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
   metadataBase: new URL("https://www.mhfashion.tn"),
@@ -46,7 +62,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
+      <body
+        className={`${montserrat.variable} ${cinzel.variable} ${notoSansArabic.variable}`}
+      >
         <LanguageProvider>
           <CartProvider>
             <MainLayout>{children}</MainLayout>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Search, Heart, ShoppingCart } from "lucide-react";
+import { Menu, Search, ShoppingCart, X } from "lucide-react";
 import Logo from "../ui/Logo";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { useLanguage } from "@/app/context/LanguageContext";
@@ -11,19 +11,29 @@ import LanguageToggle from "../multiLanguage/LanguageToggle";
 import SearchModal from "../ui/SearchModal";
 import CartModal from "../ui/CartModal";
 
+const navigationItems = [
+  { key: "ensembles", href: "/ensembles" },
+  { key: "tShirtsPolos", href: "/t-shirts-polos" },
+  { key: "shortsPantalons", href: "/shorts-pantalons" },
+  { key: "chemises", href: "/chemises" },
+  { key: "tousNosProduits", href: "/tous-nos-produits" },
+];
+
 export default function Header() {
   const t = useTranslations();
-  const { lang } = useLanguage();
+  const { isRTL } = useLanguage();
   const { getTotalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const mobileMenuRef = useRef(null);
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target)
+      ) {
         setMobileMenuOpen(false);
       }
     };
@@ -32,135 +42,112 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleSidebar = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const closeSidebar = () => {
-    setMobileMenuOpen(false);
-  };
-
   const cartItemCount = getTotalItems();
 
   return (
-    <header className="bg-white fixed shadow-sm border-b border-gray-200 w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left side - Mobile menu button + Logo */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
+    <header
+      dir={isRTL ? "rtl" : "ltr"}
+      className="fixed inset-x-0 top-0 z-50 border-b border-[#eadbcc] bg-[#fffaf5]/92 backdrop-blur-xl"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2"
+              type="button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#decbbb] bg-white/90 text-[#3c281b] shadow-[0_18px_35px_-26px_rgba(65,37,18,0.55)] transition-colors hover:border-[#bc916f] lg:hidden"
               aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-black" />
-              ) : (
-                <Menu className="w-6 h-6 text-black" />
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <Link href="/" aria-label={t("home")}>
-                <Logo />
-              </Link>
-            </div>
+            <Link href="/" aria-label={t("home")}>
+              <Logo />
+            </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {[
-              "ensembles",
-              "tShirtsPolos", 
-              "shortsPantalons",
-              "chemises",
-            ].map((key) => (
+          <nav className="hidden items-center gap-6 text-[0.92rem] font-medium text-[#4f392c] lg:flex xl:gap-8">
+            {navigationItems.map((item) => (
               <Link
-                key={key}
-                href={`/${key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}`}
-                className="text-black hover:text-gray-600 text-sm font-medium transition-colors"
+                key={item.key}
+                href={item.href}
+                className="transition-colors hover:text-[#9a7253]"
               >
-                {t(key)}
+                {t(item.key)}
               </Link>
             ))}
           </nav>
 
-          {/* Right Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
+              type="button"
               onClick={() => setSearchOpen(true)}
-              className="p-1 cursor-pointer"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#decbbb] bg-white/90 text-[#3c281b] shadow-[0_18px_35px_-26px_rgba(65,37,18,0.55)] transition-colors hover:border-[#bc916f]"
               aria-label={t("search")}
             >
-              <Search
-                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer"
-              />
+              <Search className="h-[18px] w-[18px]" />
             </button>
-            <div className="relative cursor-pointer" onClick={() => setCartOpen(true)}>
-              <ShoppingCart 
-                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer" 
-              />
+
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#decbbb] bg-white/90 text-[#3c281b] shadow-[0_18px_35px_-26px_rgba(65,37,18,0.55)] transition-colors hover:border-[#bc916f]"
+              aria-label={t("cart")}
+            >
+              <ShoppingCart className="h-[18px] w-[18px]" />
               {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#a96f4f] text-[0.68rem] text-white">
                   {cartItemCount}
                 </span>
               )}
-            </div>
+            </button>
+
             <LanguageToggle />
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 flex"
+          className="fixed inset-0 z-50 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         >
-          {/* Drawer */}
+          <div className="absolute inset-0 bg-[#1d130b]/25 backdrop-blur-[2px]" />
           <div
             ref={mobileMenuRef}
-            className="bg-white w-[280px] h-full shadow-lg transform transition-transform duration-300 ease-in-out"
-            onClick={(e) => e.stopPropagation()}
+            className={`absolute inset-y-0 ${
+              isRTL ? "right-0" : "left-0"
+            } h-full w-[86vw] max-w-sm overflow-y-auto bg-[#fffaf5] px-5 pb-8 pt-6 shadow-[0_30px_80px_-45px_rgba(36,22,13,0.65)]`}
+            onClick={(event) => event.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-black">{t("menu")}</h2>
+            <div className="flex items-center justify-between border-b border-[#eadbcc] pb-5">
+              <Logo />
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#decbbb] bg-white text-[#3c281b] transition-colors hover:border-[#bc916f]"
                 aria-label={t("closeMenu")}
               >
-                <X className="w-5 h-5 text-black" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Navigation Links */}
-            <div className="py-4">
-              {[
-                "ensembles",
-                "tShirtsPolos",
-                "shortsPantalons",
-                "chemises",
-                "tousNosProduits",
-              ].map((key) => (
+            <div className="py-6">
+              <p className="mb-4 text-xs uppercase tracking-[0.34em] text-[#9b7456]">
+                {t("menu")}
+              </p>
+              {navigationItems.map((item) => (
                 <Link
-                  key={key}
-                  href={`/${key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}`}
+                  key={item.key}
+                  href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-black hover:bg-gray-100 text-base font-medium py-4 px-6 transition-colors border-b border-gray-100 w-full"
+                  className="block rounded-2xl border border-transparent px-4 py-3 text-base font-medium text-[#2f1d12] transition-colors hover:border-[#eadbcc] hover:bg-white"
                 >
-                  {t(key)}
+                  {t(item.key)}
                 </Link>
               ))}
             </div>
-
           </div>
-          
-          {/* Overlay */}
-          <div className="flex-1 bg-black/20" />
         </div>
       )}
 
