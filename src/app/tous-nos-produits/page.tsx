@@ -73,19 +73,19 @@ function AllProductsContent() {
   // Loading state
   if (isLoading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="h-10 w-64 animate-pulse rounded bg-[#efe2d4]" />
-            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="h-10 w-64 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="h-4 w-24 animate-pulse rounded bg-[#efe2d4]" />
-                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#f5ede4]" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#e3e3e3]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#eeeeee]" />
                 </div>
               ))}
             </div>
@@ -100,7 +100,7 @@ function AllProductsContent() {
   // Error state
   if (error && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-16">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -112,7 +112,7 @@ function AllProductsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite pt-32">
+    <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -204,7 +204,7 @@ function AllProductsContent() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoading}
-                  className="px-8 py-3 bg-gold text-black rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium shadow-md"
+                  className="rounded-lg bg-black px-8 py-3 font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isLoading ? t("loading") : t("loadMore")}
                 </button>
@@ -233,19 +233,19 @@ function AllProductsContent() {
 export default function AllProductsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="h-10 w-64 animate-pulse rounded bg-[#efe2d4]" />
-            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="h-10 w-64 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="h-4 w-24 animate-pulse rounded bg-[#efe2d4]" />
-                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#f5ede4]" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#e3e3e3]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#eeeeee]" />
                 </div>
               ))}
             </div>

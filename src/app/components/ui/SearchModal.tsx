@@ -79,7 +79,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     >
       <div
         ref={modalRef}
-        className={`bg-offwhite w-full h-full sm:w-[90%] sm:h-auto sm:max-w-4xl sm:mt-20 sm:max-h-[85vh] overflow-y-auto sm:rounded-lg shadow-lg relative
+        className={`w-full h-full bg-[#f6f6f6] sm:w-[90%] sm:h-auto sm:max-w-4xl sm:mt-20 sm:max-h-[85vh] overflow-y-auto sm:rounded-lg shadow-lg relative
           transform transition-transform duration-300
           ${isOpen ? "translate-y-0" : "-translate-y-full"}`}
         onClick={(e) => e.stopPropagation()}
@@ -87,7 +87,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 text-black hover:text-gold transition-colors bg-white rounded-full p-1.5 sm:p-1 shadow-md"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 rounded-full bg-white p-1.5 text-black shadow-md transition-colors hover:text-gray-600 sm:p-1"
           aria-label={t("close")}
         >
           <X className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -108,7 +108,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border-0 bg-offwhite px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+              className="w-full rounded-md border-0 bg-[#f6f6f6] px-2 sm:px-3 py-2 sm:py-2.5 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
             />
             {isLoading && (
               <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 animate-spin mr-2 sm:mr-3 flex-shrink-0" />
@@ -189,7 +189,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   <Link
                     href={`/tous-nos-produits?search=${encodeURIComponent(debouncedQuery)}`}
                     onClick={onClose}
-                    className="inline-block text-xs sm:text-sm text-black hover:text-gold font-medium underline px-2 py-1"
+                    className="inline-block px-2 py-1 text-xs font-medium text-black underline transition-colors hover:text-gray-600 sm:text-sm"
                   >
                     {t("viewAllResults") || "Voir tous les résultats"}
                   </Link>

@@ -69,15 +69,15 @@ export default function CategoryPage() {
   // Loading state
   if (isLoading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="h-10 w-48 animate-pulse rounded bg-[#efe2d4]" />
-            <div className="mt-4 h-5 w-32 animate-pulse rounded bg-[#efe2d4]" />
+            <div className="h-10 w-48 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-32 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
 
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="h-10 w-64 animate-pulse rounded bg-[#f5ede4]" />
+            <div className="h-10 w-64 animate-pulse rounded bg-[#eeeeee]" />
           </div>
 
           <ProductGridSkeleton count={8} />
@@ -89,7 +89,7 @@ export default function CategoryPage() {
   // Error state
   if (error && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-16">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -103,7 +103,7 @@ export default function CategoryPage() {
   // Invalid category
   if (!categoryValue) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-16">
             <h1 className="text-3xl font-bold text-black mb-4">Catégorie non trouvée</h1>
@@ -115,7 +115,7 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite pt-32">
+    <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -169,7 +169,7 @@ export default function CategoryPage() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoading}
-                  className="px-8 py-3 bg-gold text-black rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium shadow-md"
+                  className="rounded-lg bg-black px-8 py-3 font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isLoading ? t("loading") : t("loadMore")}
                 </button>

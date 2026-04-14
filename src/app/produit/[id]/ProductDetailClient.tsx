@@ -53,7 +53,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-7xl px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-12 pt-24 sm:px-6 sm:pb-16 sm:pt-28 lg:px-8 lg:pt-32">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
           <div className="w-full lg:w-1/2">
             <ProductImageGallery
@@ -88,8 +88,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     onClick={() => setSelectedSize(size)}
                     className={`rounded-lg border px-4 py-2 text-sm ${
                       selectedSize === size
-                        ? 'border-gold bg-gold text-black'
-                        : 'border-gray-300 hover:border-gold'
+                        ? 'border-black bg-black text-white'
+                        : 'border-gray-300 text-[#111111] hover:border-black'
                     }`}
                   >
                     {size}
@@ -108,8 +108,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     onClick={() => setSelectedColor(color)}
                     className={`rounded-lg border px-4 py-2 text-sm ${
                       selectedColor === color
-                        ? 'border-gold bg-gold text-black'
-                        : 'border-gray-300 hover:border-gold'
+                        ? 'border-black bg-black text-white'
+                        : 'border-gray-300 text-[#111111] hover:border-black'
                     }`}
                   >
                     {color}
@@ -124,7 +124,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(false)}
-                  className="rounded-lg border border-gray-300 p-2 hover:border-gold"
+                  className="rounded-lg border border-gray-300 p-2 text-[#111111] transition-colors hover:border-black"
                   disabled={quantity <= 1}
                 >
                   <Minus className="h-4 w-4" />
@@ -133,7 +133,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(true)}
-                  className="rounded-lg border border-gray-300 p-2 hover:border-gold"
+                  className="rounded-lg border border-gray-300 p-2 text-[#111111] transition-colors hover:border-black"
                 >
                   <Plus className="h-4 w-4" />
                 </button>

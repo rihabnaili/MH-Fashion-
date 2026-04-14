@@ -12,8 +12,8 @@ html {
 
 body {
   @apply font-montserrat text-black antialiased;
-  background: #fcf7f2;
-  color: #24160d;
+  background: #f6f6f6;
+  color: #111111;
 }
 
 html[dir="rtl"] body {
@@ -62,8 +62,8 @@ html[dir="rtl"] body {
 }
 
 ::selection {
-  background: #dbc2ac;
-  color: #24160d;
+  background: #111111;
+  color: #ffffff;
 }
 
 /* Fix cursor for clickable icons */

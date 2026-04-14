@@ -12,8 +12,7 @@ const homeCopy = {
   fr: {
     sectionAction: "Explorer la selection",
     catalogEyebrow: "Catalogue MH",
-    catalogDescription:
-      "Les pieces les plus recentes restent visibles ici, avec un acces direct au catalogue complet quand le client veut parcourir tout le stock.",
+    catalogDescription: "Les pieces les plus recentes restent visibles ici.",
     catalogAction: "Voir le catalogue complet",
     summary: (visible, total) => `Affichage de ${visible} sur ${total} produits`,
   },
@@ -72,7 +71,7 @@ function LoadingGrid({ count }) {
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className="h-[23rem] animate-pulse rounded-[1.7rem] border border-[#eadacb] bg-white/70"
+          className="h-[23rem] animate-pulse rounded-[1.7rem] border border-[#dddddd] bg-white/80"
         />
       ))}
     </div>
@@ -92,20 +91,20 @@ function SectionHeader({
   return (
     <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
       <div className={isRTL ? "md:text-right" : ""}>
-        <p className="mb-3 text-xs uppercase tracking-[0.38em] text-[#9c7356]">
+        <p className="mb-3 text-xs uppercase tracking-[0.38em] text-[#8b8b8b]">
           {eyebrow}
         </p>
-        <h2 className="text-3xl font-semibold tracking-[0.08em] text-[#24160d] sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-[0.08em] text-[#111111] sm:text-4xl">
           {title}
         </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-[#6a5142] sm:text-base">
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[#5b5b5b] sm:text-base">
           {description}
         </p>
       </div>
 
       <Link
         href={href}
-        className="inline-flex items-center gap-2 self-start rounded-full border border-[#ddc9b8] bg-white/85 px-5 py-3 text-sm font-semibold text-[#372318] transition-colors hover:border-[#bc916f] hover:bg-white"
+        className="inline-flex items-center gap-2 self-start rounded-full border border-[#d5d5d5] bg-white px-5 py-3 text-sm font-semibold text-[#111111] transition-colors hover:border-black hover:bg-[#f5f5f5]"
       >
         {actionLabel}
         <ArrowIcon className="h-4 w-4" />
@@ -127,12 +126,12 @@ export default function FeaturedProducts() {
 
   if (error && !products.length) {
     return (
-      <section className="bg-[#fffaf5] py-16 sm:py-20">
+      <section className="bg-[#f6f6f6] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-[18rem] items-center justify-center rounded-[2rem] border border-[#eadacb] bg-white/90 px-6 text-center shadow-[0_25px_70px_-45px_rgba(74,46,30,0.45)]">
+          <div className="flex min-h-[18rem] items-center justify-center rounded-[2rem] border border-[#dddddd] bg-white px-6 text-center shadow-[0_25px_70px_-45px_rgba(0,0,0,0.18)]">
             <div className="flex flex-col items-center gap-3">
               <AlertCircle className="h-8 w-8 text-[#bc5b52]" />
-              <span className="text-[#6a5142]">{t("errorLoading")}</span>
+              <span className="text-[#5b5b5b]">{t("errorLoading")}</span>
             </div>
           </div>
         </div>
@@ -142,10 +141,10 @@ export default function FeaturedProducts() {
 
   if (!isLoading && products.length === 0) {
     return (
-      <section className="bg-[#fffaf5] py-16 sm:py-20">
+      <section className="bg-[#f6f6f6] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-[#eadacb] bg-white/90 px-6 py-16 text-center shadow-[0_25px_70px_-45px_rgba(74,46,30,0.45)]">
-            <p className="text-xl text-[#6a5142]">{t("noFeaturedProducts")}</p>
+          <div className="rounded-[2rem] border border-[#dddddd] bg-white px-6 py-16 text-center shadow-[0_25px_70px_-45px_rgba(0,0,0,0.18)]">
+            <p className="text-xl text-[#5b5b5b]">{t("noFeaturedProducts")}</p>
           </div>
         </div>
       </section>
@@ -167,7 +166,7 @@ export default function FeaturedProducts() {
           <section
             key={section.key}
             className={`py-16 sm:py-20 ${
-              index % 2 === 0 ? "bg-[#fffaf5]" : "bg-[#f8efe6]"
+              index % 2 === 0 ? "bg-white" : "bg-[#f5f5f5]"
             }`}
           >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -194,7 +193,7 @@ export default function FeaturedProducts() {
         );
       })}
 
-      <section className="bg-[#fffaf5] py-16 sm:py-20">
+      <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow={copy.catalogEyebrow}
@@ -216,7 +215,7 @@ export default function FeaturedProducts() {
               </div>
 
               <div className={`mt-8 ${isRTL ? "text-right" : "text-left"}`}>
-                <p className="text-sm text-[#8a6a54]">
+                <p className="text-sm text-[#6b6b6b]">
                   {copy.summary(
                     featuredProducts.length,
                     pagination?.totalProducts || featuredProducts.length

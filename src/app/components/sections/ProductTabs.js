@@ -71,7 +71,7 @@ export default function ProductTabs() {
                   onClick={() => handleTabChange(key)}
                   className={`pb-4 px-2 font-medium font-text text-sm transition-colors ${
                     activeTab === key
-                      ? "text-gold border-b-2 border-gold"
+                      ? "text-black border-b-2 border-black"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -103,7 +103,7 @@ export default function ProductTabs() {
                   onClick={() => handleTabChange(key)}
                   className={`pb-4 px-2 font-medium font-text text-sm transition-colors ${
                     activeTab === key
-                      ? "text-gold border-b-2 border-gold"
+                      ? "text-black border-b-2 border-black"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -135,7 +135,7 @@ export default function ProductTabs() {
                   onClick={() => handleTabChange(key)}
                   className={`pb-4 px-2 font-medium font-text text-sm transition-colors ${
                     activeTab === key
-                      ? "text-gold border-b-2 border-gold"
+                      ? "text-black border-b-2 border-black"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -167,7 +167,7 @@ export default function ProductTabs() {
                 onClick={() => handleTabChange(key)}
                 className={`pb-4 px-2 font-medium font-text text-sm transition-colors ${
                   activeTab === key
-                    ? "text-gold border-b-2 border-gold"
+                    ? "text-black border-b-2 border-black"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >

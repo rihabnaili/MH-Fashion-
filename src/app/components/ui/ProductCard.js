@@ -30,9 +30,9 @@ const ProductCard = ({ product, className = "" }) => {
 
   return (
     <div
-      className={`group relative flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-[#eadacb] bg-white/95 shadow-[0_25px_60px_-42px_rgba(74,46,30,0.58)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-36px_rgba(74,46,30,0.62)] ${className}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-[#dddddd] bg-white shadow-[0_25px_60px_-42px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-36px_rgba(0,0,0,0.22)] ${className}`}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-[#f5ede4]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#f3f3f3]">
         {discountPercentage > 0 && (
           <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[#9d3a36] shadow-sm">
             -{discountPercentage}%
@@ -40,7 +40,7 @@ const ProductCard = ({ product, className = "" }) => {
         )}
 
         {imageError ? (
-          <div className="flex h-full w-full items-center justify-center bg-[#efe4d7] px-6 text-center text-sm text-[#8b725e]">
+          <div className="flex h-full w-full items-center justify-center bg-[#ededed] px-6 text-center text-sm text-[#707070]">
             Image non disponible
           </div>
         ) : (
@@ -57,7 +57,7 @@ const ProductCard = ({ product, className = "" }) => {
       </div>
 
       <div className="flex flex-1 flex-col px-4 pb-5 pt-4 text-center">
-        <h3 className="min-h-[2.7rem] text-sm font-semibold uppercase tracking-[0.08em] text-[#22150d] sm:text-[0.95rem]">
+        <h3 className="min-h-[2.7rem] text-sm font-semibold uppercase tracking-[0.08em] text-[#111111] sm:text-[0.95rem]">
           {productName}
         </h3>
 
@@ -67,14 +67,14 @@ const ProductCard = ({ product, className = "" }) => {
               {product.originalPrice.toFixed(1)} {t("dt")}
             </span>
           )}
-          <span className="text-base font-semibold text-[#2c1c12]">
+          <span className="text-base font-semibold text-[#111111]">
             {product.price.toFixed(1)} {t("dt")}
           </span>
         </div>
 
         <Link
           href={`/produit/${product._id}`}
-          className="mt-5 inline-flex items-center justify-center rounded-full bg-[#8f6649] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#77533a]"
+          className="mt-5 inline-flex items-center justify-center rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
         >
           {actionLabel}
         </Link>

@@ -132,7 +132,7 @@ export default function ProductImageGallery({ images, productName, className = '
   return (
     <div className={`relative group ${className}`}>
       {/* Main Image */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-[#f6f1ea]">
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-[#f3f3f3]">
         {currentImage && !isCurrentMainImageLoaded && (
           <Image
             src={currentImage.blur}
@@ -199,7 +199,7 @@ export default function ProductImageGallery({ images, productName, className = '
               onClick={() => goToImage(index)}
               className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                 index === currentImageIndex
-                  ? 'border-gold ring-2 ring-gold/20'
+                  ? 'border-black ring-2 ring-black/10'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -216,8 +216,8 @@ export default function ProductImageGallery({ images, productName, className = '
                 unoptimized
               />
               {index === currentImageIndex && (
-                <div className="absolute inset-0 bg-gold/20 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-gold rounded-full"></div>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                  <div className="h-2 w-2 rounded-full bg-black"></div>
                 </div>
               )}
             </button>
