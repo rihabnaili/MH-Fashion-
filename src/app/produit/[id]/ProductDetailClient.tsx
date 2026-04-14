@@ -13,6 +13,8 @@ interface ProductDetailClientProps {
   product: StorefrontProduct;
 }
 
+const DELIVERY_FEE = 8;
+
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { lang } = useLanguage();
   const t = useTranslations();
@@ -33,7 +35,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     product.description?.[lang as keyof typeof product.description] || product.description?.fr;
   const requiresSize = product.size.length > 0;
   const requiresColor = product.color.length > 0;
-  const totalAmount = product.price * quantity;
+  const subtotalAmount = product.price * quantity;
+  const totalAmount = subtotalAmount + DELIVERY_FEE;
   const totalDiscount =
     product.originalPrice && product.originalPrice > product.price
       ? (product.originalPrice - product.price) * quantity
@@ -176,6 +179,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </span>
                 )}
               </div>
+              <p className="text-sm text-gray-600">
+                +{DELIVERY_FEE} {t('dt')} {t('deliveryFees')}
+              </p>
             </div>
 
             {requiresSize && (
@@ -300,8 +306,20 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
 
               <div className="rounded-2xl border border-[#e3e3e3] bg-white px-4 py-3">
+                <div className="flex items-center justify-between text-sm text-[#666666]">
+                  <span>{t('price')}</span>
+                  <span>
+                    {subtotalAmount.toFixed(2)} {t('dt')}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-sm text-[#666666]">
+                  <span>{t('deliveryFees')}</span>
+                  <span>
+                    +{DELIVERY_FEE.toFixed(2)} {t('dt')}
+                  </span>
+                </div>
                 {totalDiscount > 0 && (
-                  <div className="text-sm text-[#666666]">
+                  <div className="mt-2 text-sm text-[#666666]">
                     <span>
                       -{totalDiscount.toFixed(2)} {t('dt')}
                     </span>
