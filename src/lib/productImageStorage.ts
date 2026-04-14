@@ -1,10 +1,19 @@
 import 'server-only';
 
 import mongoose from 'mongoose';
-import sharp from 'sharp';
 
 import ProductImage from '@/models/ProductImage';
 import { PRODUCT_IMAGE_VARIANTS, ProductImageVariant } from '@/lib/productImageUrls';
+
+let sharpPromise: Promise<any> | null = null;
+
+async function getSharp() {
+  if (!sharpPromise) {
+    sharpPromise = import('sharp').then((module) => module.default ?? module);
+  }
+
+  return sharpPromise;
+}
 
 type StoredVariantPayload = {
   data: Buffer;
@@ -41,6 +50,7 @@ export function decodeLegacyImageDataUri(dataUri: string) {
 }
 
 export async function createStoredImageVariants(buffer: Buffer): Promise<StoredImageVariants> {
+  const sharp = await getSharp();
   const blur = await sharp(buffer)
     .rotate()
     .resize({
