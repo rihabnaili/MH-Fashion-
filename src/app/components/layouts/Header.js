@@ -3,14 +3,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Search, ShoppingCart, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 
-import { useCart } from "@/app/context/CartContext";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { useTranslations } from "@/app/hooks/useTranslations";
 
 import LanguageToggle from "../multiLanguage/LanguageToggle";
-import CartModal from "../ui/CartModal";
 import Logo from "../ui/Logo";
 
 const navigationItems = [
@@ -47,16 +45,12 @@ function SearchForm({ query, setQuery, onSubmit, t, isCompact = false }) {
 export default function Header() {
   const t = useTranslations();
   const { isRTL } = useLanguage();
-  const { getTotalItems } = useCart();
   const router = useRouter();
   const pathname = usePathname();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const mobileMenuRef = useRef(null);
-
-  const cartItemCount = getTotalItems();
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -156,20 +150,6 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setCartOpen(true)}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#111111] transition-colors hover:border-black"
-                aria-label={t("cart")}
-              >
-                <ShoppingCart className="h-[18px] w-[18px]" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[0.68rem] text-white">
-                    {cartItemCount}
-                  </span>
-                )}
-              </button>
-
               <div className="hidden lg:flex">
                 <LanguageToggle />
               </div>
@@ -235,8 +215,6 @@ export default function Header() {
           </div>
         </div>
       )}
-
-      <CartModal isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   );
 }

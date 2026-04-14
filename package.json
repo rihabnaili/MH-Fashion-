@@ -5,6 +5,7 @@
   "engines": {
     "node": "20.x"
   },
+  "packageManager": "pnpm@9.12.3",
   "scripts": {
     "clean": "rimraf -g \"{node_modules,.next,.cache}\"",
     "dev": "next dev",

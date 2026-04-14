@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import Link from "next/link";
-import { useTranslations } from "@/app/hooks/useTranslations";
-import { useLanguage } from "@/app/context/LanguageContext";
 import Image from "next/image";
+import Link from "next/link";
+
+import { useLanguage } from "@/app/context/LanguageContext";
+import { useTranslations } from "@/app/hooks/useTranslations";
 import { buildProductImageUrl } from "@/lib/imageUrl";
 
 const ProductCard = ({ product, className = "" }) => {
@@ -10,15 +11,10 @@ const ProductCard = ({ product, className = "" }) => {
   const { lang } = useLanguage();
   const [imageError, setImageError] = useState(false);
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
   const discountPercentage =
     product.originalPrice && product.originalPrice > product.price
       ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) *
-            100
+          ((product.originalPrice - product.price) / product.originalPrice) * 100
         )
       : 0;
 
@@ -26,7 +22,7 @@ const ProductCard = ({ product, className = "" }) => {
   const productImage = buildProductImageUrl(product.images?.[0], {
     variant: "thumb",
   });
-  const actionLabel = lang === "ar" ? "اكتشف المنتج" : "Voir le produit";
+  const actionLabel = lang === "ar" ? "شراء" : "Acheter";
 
   return (
     <div
@@ -49,7 +45,7 @@ const ProductCard = ({ product, className = "" }) => {
             alt={productName}
             fill
             className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
-            onError={handleImageError}
+            onError={() => setImageError(true)}
             sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
             unoptimized
           />

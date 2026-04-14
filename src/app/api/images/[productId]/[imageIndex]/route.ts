@@ -2,11 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import mongoose from 'mongoose';
-import sharp from 'sharp';
 import { PRODUCT_IMAGE_VARIANTS, ProductImageVariant } from '@/lib/productImageUrls';
 import { readStoredProductImageVariant } from '@/lib/productImageStorage';
 
 export const runtime = 'nodejs';
+
+let sharpPromise: Promise<any> | null = null;
+
+async function getSharp() {
+  if (!sharpPromise) {
+    sharpPromise = import('sharp').then((module) => module.default ?? module);
+  }
+
+  return sharpPromise;
+}
 
 // GET image from MongoDB as base64
 export async function GET(
@@ -96,6 +105,7 @@ export async function GET(
             fit: 'inside' as const,
             withoutEnlargement: true,
           };
+    const sharp = await getSharp();
     const outputBuffer = await sharp(imageBuffer)
       .rotate()
       .resize(resizeConfig)
