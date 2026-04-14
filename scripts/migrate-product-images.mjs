@@ -5,9 +5,17 @@ import { MongoClient } from 'mongodb';
 import sharp from 'sharp';
 
 const PRODUCT_IMAGE_VARIANTS = {
+  blur: {
+    width: 40,
+    quality: 34,
+  },
   thumb: {
     width: 320,
     quality: 64,
+  },
+  gallery: {
+    width: 720,
+    quality: 66,
   },
   detail: {
     width: 960,
@@ -41,6 +49,16 @@ function decodeDataUri(dataUri) {
 }
 
 async function buildVariants(buffer) {
+  const blur = await sharp(buffer)
+    .rotate()
+    .resize({
+      width: PRODUCT_IMAGE_VARIANTS.blur.width,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: PRODUCT_IMAGE_VARIANTS.blur.quality })
+    .toBuffer();
+
   const thumb = await sharp(buffer)
     .rotate()
     .resize({
@@ -50,6 +68,16 @@ async function buildVariants(buffer) {
       withoutEnlargement: true,
     })
     .webp({ quality: PRODUCT_IMAGE_VARIANTS.thumb.quality })
+    .toBuffer();
+
+  const gallery = await sharp(buffer)
+    .rotate()
+    .resize({
+      width: PRODUCT_IMAGE_VARIANTS.gallery.width,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: PRODUCT_IMAGE_VARIANTS.gallery.quality })
     .toBuffer();
 
   const detail = await sharp(buffer)
@@ -63,8 +91,16 @@ async function buildVariants(buffer) {
     .toBuffer();
 
   return {
+    blur: {
+      data: blur,
+      contentType: 'image/webp',
+    },
     thumb: {
       data: thumb,
+      contentType: 'image/webp',
+    },
+    gallery: {
+      data: gallery,
       contentType: 'image/webp',
     },
     detail: {
@@ -72,6 +108,53 @@ async function buildVariants(buffer) {
       contentType: 'image/webp',
     },
   };
+}
+
+function coerceStoredBinaryToBuffer(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (Buffer.isBuffer(value)) {
+    return Buffer.from(value);
+  }
+
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value);
+  }
+
+  if (typeof value === 'object') {
+    if (Buffer.isBuffer(value.buffer)) {
+      return Buffer.from(value.buffer);
+    }
+
+    if (value.buffer instanceof Uint8Array) {
+      return Buffer.from(value.buffer);
+    }
+
+    if (Buffer.isBuffer(value.data)) {
+      return Buffer.from(value.data);
+    }
+
+    if (value.data instanceof Uint8Array) {
+      return Buffer.from(value.data);
+    }
+  }
+
+  return null;
+}
+
+function resolveStoredSourceBuffer(existingImageDoc) {
+  if (!existingImageDoc?.variants) {
+    return null;
+  }
+
+  return (
+    coerceStoredBinaryToBuffer(existingImageDoc.variants.detail?.data) ??
+    coerceStoredBinaryToBuffer(existingImageDoc.variants.gallery?.data) ??
+    coerceStoredBinaryToBuffer(existingImageDoc.variants.thumb?.data) ??
+    coerceStoredBinaryToBuffer(existingImageDoc.variants.blur?.data)
+  );
 }
 
 const shouldDropLegacyImages = process.argv.includes('--drop-legacy');
@@ -95,7 +178,10 @@ async function main() {
     const products = await productsCollection
       .find(
         {
-          'images.0': { $exists: true },
+          $or: [
+            { 'images.0': { $exists: true } },
+            { imageCount: { $gt: 0 } },
+          ],
         },
         {
           projection: {
@@ -108,20 +194,39 @@ async function main() {
       )
       .toArray();
 
-    console.log(`Found ${products.length} products with legacy images.`);
+    console.log(`Found ${products.length} products with images to rebuild.`);
 
     for (const product of products) {
       const legacyImages = Array.isArray(product.images)
         ? product.images.filter((image) => typeof image === 'string' && image.length > 0)
         : [];
+      const existingImageDocs = await productImagesCollection
+        .find({ productId: product._id })
+        .sort({ position: 1 })
+        .toArray();
 
-      if (!legacyImages.length) {
+      const targetImageCount = Math.max(
+        legacyImages.length,
+        existingImageDocs.length,
+        Number.isFinite(product.imageCount) ? product.imageCount : 0
+      );
+
+      if (!targetImageCount) {
         continue;
       }
 
       const imageDocs = [];
-      for (let position = 0; position < legacyImages.length; position += 1) {
-        const buffer = decodeDataUri(legacyImages[position]);
+      for (let position = 0; position < targetImageCount; position += 1) {
+        const legacyImage = legacyImages[position];
+        const existingImageDoc = existingImageDocs[position];
+        const buffer = legacyImage
+          ? decodeDataUri(legacyImage)
+          : resolveStoredSourceBuffer(existingImageDoc);
+
+        if (!buffer) {
+          continue;
+        }
+
         imageDocs.push({
           productId: product._id,
           position,

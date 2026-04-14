@@ -54,8 +54,7 @@ const CartItemCard = ({
             <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
               <Image
                 src={buildProductImageUrl(productImages[currentImageIndex], {
-                  width: 900,
-                  quality: 76,
+                  variant: 'gallery',
                 })}
                 alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                 fill
@@ -102,7 +101,7 @@ const CartItemCard = ({
                     }`}
                   >
                     <Image
-                      src={buildProductImageUrl(image, { width: 160, quality: 60 })}
+                      src={buildProductImageUrl(image, { variant: 'thumb' })}
                       alt={`${item.name[lang as 'fr' | 'ar'] || item.name.fr} - Thumbnail ${imgIndex + 1}`}
                       fill
                       className="object-cover"

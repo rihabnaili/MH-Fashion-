@@ -16,7 +16,7 @@ export type StoredImageVariants = Record<ProductImageVariant, StoredVariantPaylo
 export type ProductImageSource =
   | {
       type: 'stored';
-      variants: StoredImageVariants;
+      variants: Partial<StoredImageVariants>;
     }
   | {
       type: 'buffer';
@@ -41,6 +41,26 @@ export function decodeLegacyImageDataUri(dataUri: string) {
 }
 
 export async function createStoredImageVariants(buffer: Buffer): Promise<StoredImageVariants> {
+  const blur = await sharp(buffer)
+    .rotate()
+    .resize({
+      width: PRODUCT_IMAGE_VARIANTS.blur.width,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: PRODUCT_IMAGE_VARIANTS.blur.quality })
+    .toBuffer();
+
+  const gallery = await sharp(buffer)
+    .rotate()
+    .resize({
+      width: PRODUCT_IMAGE_VARIANTS.gallery.width,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: PRODUCT_IMAGE_VARIANTS.gallery.quality })
+    .toBuffer();
+
   const detail = await sharp(buffer)
     .rotate()
     .resize({
@@ -63,8 +83,16 @@ export async function createStoredImageVariants(buffer: Buffer): Promise<StoredI
     .toBuffer();
 
   return {
+    blur: {
+      data: blur,
+      contentType: 'image/webp',
+    },
     thumb: {
       data: thumb,
+      contentType: 'image/webp',
+    },
+    gallery: {
+      data: gallery,
       contentType: 'image/webp',
     },
     detail: {
@@ -117,6 +145,19 @@ function coerceStoredBinaryToBuffer(value: unknown) {
   return null;
 }
 
+function getStoredVariantBuffer(variants: Partial<StoredImageVariants>, variant: ProductImageVariant) {
+  return coerceStoredBinaryToBuffer(variants[variant]?.data);
+}
+
+function resolveStoredSourceBuffer(variants: Partial<StoredImageVariants>) {
+  return (
+    getStoredVariantBuffer(variants, 'detail') ??
+    getStoredVariantBuffer(variants, 'gallery') ??
+    getStoredVariantBuffer(variants, 'thumb') ??
+    getStoredVariantBuffer(variants, 'blur')
+  );
+}
+
 export async function fileToProductImageSource(file: File): Promise<ProductImageSource> {
   const bytes = await file.arrayBuffer();
   return {
@@ -127,7 +168,24 @@ export async function fileToProductImageSource(file: File): Promise<ProductImage
 
 async function variantsForSource(source: ProductImageSource): Promise<StoredImageVariants> {
   if (source.type === 'stored') {
-    return source.variants;
+    const sourceBuffer = resolveStoredSourceBuffer(source.variants);
+
+    if (!sourceBuffer) {
+      throw new Error('Stored image variants are missing a usable source buffer');
+    }
+
+    const hasAllVariants = (Object.keys(PRODUCT_IMAGE_VARIANTS) as ProductImageVariant[]).every(
+      (variant) => {
+        const variantBuffer = getStoredVariantBuffer(source.variants, variant);
+        return !!variantBuffer?.length && !!source.variants[variant]?.contentType;
+      }
+    );
+
+    if (hasAllVariants) {
+      return source.variants as StoredImageVariants;
+    }
+
+    return createStoredImageVariants(sourceBuffer);
   }
 
   if (source.type === 'buffer') {
@@ -194,21 +252,27 @@ export async function loadStoredProductImages(productId: mongoose.Types.ObjectId
     .sort({ position: 1 })
     .lean()) as unknown as Array<{
     position: number;
-    variants: StoredImageVariants;
+    variants: Partial<StoredImageVariants>;
   }>;
 
   return docs.map((doc) => ({
     position: doc.position,
-    variants: {
-      thumb: {
-        data: coerceStoredBinaryToBuffer(doc.variants.thumb.data) ?? Buffer.alloc(0),
-        contentType: doc.variants.thumb.contentType,
+    variants: (Object.keys(PRODUCT_IMAGE_VARIANTS) as ProductImageVariant[]).reduce(
+      (acc, variant) => {
+        const buffer = getStoredVariantBuffer(doc.variants, variant);
+        const contentType = doc.variants?.[variant]?.contentType;
+
+        if (buffer?.length && contentType) {
+          acc[variant] = {
+            data: buffer,
+            contentType,
+          };
+        }
+
+        return acc;
       },
-      detail: {
-        data: coerceStoredBinaryToBuffer(doc.variants.detail.data) ?? Buffer.alloc(0),
-        contentType: doc.variants.detail.contentType,
-      },
-    },
+      {} as Partial<StoredImageVariants>
+    ),
   }));
 }
 

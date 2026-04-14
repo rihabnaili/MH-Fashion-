@@ -9,14 +9,16 @@ export interface IProductImage extends Document {
   productId: mongoose.Types.ObjectId;
   position: number;
   variants: {
+    blur: IImageVariant;
     thumb: IImageVariant;
+    gallery: IImageVariant;
     detail: IImageVariant;
   };
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ImageVariantSchema = new Schema<IImageVariant>(
+const ImageVariantSchema = new Schema(
   {
     data: { type: Buffer, required: true },
     contentType: { type: String, required: true, trim: true },
@@ -40,7 +42,9 @@ const ProductImageSchema = new Schema<IProductImage>(
       min: 0,
     },
     variants: {
+      blur: { type: ImageVariantSchema, required: true },
       thumb: { type: ImageVariantSchema, required: true },
+      gallery: { type: ImageVariantSchema, required: true },
       detail: { type: ImageVariantSchema, required: true },
     },
   },

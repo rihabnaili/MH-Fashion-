@@ -149,8 +149,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                           <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
                             <Image
                               src={buildProductImageUrl(product.images?.[0], {
-                                width: 320,
-                                quality: 64,
+                                variant: 'thumb',
                               })}
                               alt={productName}
                               fill

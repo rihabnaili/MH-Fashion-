@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -14,19 +14,27 @@ interface ProductImageGalleryProps {
 
 export default function ProductImageGallery({ images, productName, className = '' }: ProductImageGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [loadedMainImages, setLoadedMainImages] = useState<Record<string, true>>({});
+  const [thumbnailSources, setThumbnailSources] = useState<string[]>([]);
   const { lang } = useLanguage();
+  const prefetchedMainImagesRef = useRef<Set<string>>(new Set());
+
+  const imageSources = useMemo(
+    () =>
+      images.map((image) => ({
+        blur: buildProductImageUrl(image, { variant: 'blur' }),
+        thumb: buildProductImageUrl(image, { variant: 'thumb' }),
+        main: buildProductImageUrl(image, { variant: 'gallery' }),
+      })),
+    [images]
+  );
 
   useEffect(() => {
     setCurrentImageIndex(0);
-  }, [images]);
-
-  if (!images || images.length === 0) {
-    return (
-      <div className={`w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center ${className}`}>
-        <span className="text-gray-500">Aucune image</span>
-      </div>
-    );
-  }
+    setLoadedMainImages({});
+    prefetchedMainImagesRef.current.clear();
+    setThumbnailSources(imageSources.map((imageSource) => imageSource.thumb));
+  }, [imageSources]);
 
   const goToNext = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -40,21 +48,121 @@ export default function ProductImageGallery({ images, productName, className = '
     setCurrentImageIndex(index);
   };
 
-  const mainImageSrc = buildProductImageUrl(images[currentImageIndex], {
-    variant: 'detail',
-  });
+  const currentImage = imageSources[currentImageIndex];
+  const isCurrentMainImageLoaded = !!(currentImage && loadedMainImages[currentImage.main]);
+
+  const markMainImageLoaded = (src: string) => {
+    setLoadedMainImages((previousImages) => {
+      if (previousImages[src]) {
+        return previousImages;
+      }
+
+      return {
+        ...previousImages,
+        [src]: true,
+      };
+    });
+  };
+
+  const handleThumbnailError = (index: number) => {
+    setThumbnailSources((previousSources) => {
+      const nextSources = [...previousSources];
+      const fallbackSource = imageSources[index]?.main || images[index];
+
+      if (!fallbackSource || nextSources[index] === fallbackSource) {
+        return previousSources;
+      }
+
+      nextSources[index] = fallbackSource;
+      return nextSources;
+    });
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || imageSources.length <= 1) {
+      return;
+    }
+
+    const orderedMainSources = [
+      imageSources[currentImageIndex]?.main,
+      imageSources[(currentImageIndex + 1) % imageSources.length]?.main,
+      imageSources[(currentImageIndex - 1 + imageSources.length) % imageSources.length]?.main,
+      ...imageSources.map((imageSource) => imageSource.main),
+    ].filter((src): src is string => Boolean(src));
+
+    const sourcesToPrefetch = Array.from(new Set(orderedMainSources)).filter((src) => {
+      return !prefetchedMainImagesRef.current.has(src);
+    });
+
+    const prefetchImage = (src: string) => {
+      prefetchedMainImagesRef.current.add(src);
+      const image = new window.Image();
+      image.decoding = 'async';
+      image.src = src;
+    };
+
+    sourcesToPrefetch.slice(0, 2).forEach(prefetchImage);
+
+    const deferredSources = sourcesToPrefetch.slice(2);
+    if (!deferredSources.length) {
+      return;
+    }
+
+    const runDeferredPrefetch = () => {
+      deferredSources.forEach(prefetchImage);
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleCallbackId = window.requestIdleCallback(runDeferredPrefetch, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleCallbackId);
+    }
+
+    const timeoutId = globalThis.setTimeout(runDeferredPrefetch, 180);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [currentImageIndex, imageSources]);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className={`w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center ${className}`}>
+        <span className="text-gray-500">Aucune image</span>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative group ${className}`}>
       {/* Main Image */}
       <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-[#f6f1ea]">
+        {currentImage && !isCurrentMainImageLoaded && (
+          <Image
+            src={currentImage.blur}
+            alt=""
+            aria-hidden="true"
+            fill
+            className="scale-110 object-cover blur-2xl"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 640px"
+            unoptimized
+          />
+        )}
         <Image
-          src={mainImageSrc}
+          src={currentImage?.main || images[currentImageIndex]}
           alt={`${productName} - Image ${currentImageIndex + 1}`}
           fill
-          className="object-contain p-4 transition-all duration-300 sm:p-6"
+          className={`object-contain p-4 transition-all duration-300 sm:p-6 ${
+            isCurrentMainImageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           priority={currentImageIndex === 0}
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 640px"
+          onLoad={() => {
+            if (currentImage?.main) {
+              markMainImageLoaded(currentImage.main);
+            }
+          }}
+          onError={() => {
+            if (currentImage?.main) {
+              markMainImageLoaded(currentImage.main);
+            }
+          }}
           unoptimized
         />
         
@@ -96,10 +204,15 @@ export default function ProductImageGallery({ images, productName, className = '
               }`}
             >
               <Image
-                src={buildProductImageUrl(image, { variant: 'thumb' })}
+                src={
+                  thumbnailSources[index] ||
+                  imageSources[index]?.thumb ||
+                  buildProductImageUrl(image, { variant: 'thumb' })
+                }
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
+                onError={() => handleThumbnailError(index)}
                 unoptimized
               />
               {index === currentImageIndex && (

@@ -1,4 +1,4 @@
-export type ProductImageVariant = 'thumb' | 'detail';
+export type ProductImageVariant = 'blur' | 'thumb' | 'gallery' | 'detail';
 
 export const PRODUCT_IMAGE_FALLBACK = '/home-media/set.jpg';
 
@@ -6,9 +6,17 @@ export const PRODUCT_IMAGE_VARIANTS: Record<
   ProductImageVariant,
   { width: number; quality: number }
 > = {
+  blur: {
+    width: 40,
+    quality: 34,
+  },
   thumb: {
     width: 320,
     quality: 64,
+  },
+  gallery: {
+    width: 720,
+    quality: 66,
   },
   detail: {
     width: 960,
@@ -46,7 +54,15 @@ export function resolveRequestedProductImageVariant(
     return preferredVariant;
   }
 
-  return width && width > 480 ? 'detail' : 'thumb';
+  if (width && width > 980) {
+    return 'detail';
+  }
+
+  if (width && width > 520) {
+    return 'gallery';
+  }
+
+  return 'thumb';
 }
 
 export function resolveProductImageCount(product: {
@@ -68,11 +84,13 @@ export function normalizeProductImages<T extends { _id: unknown; imageCount?: nu
   product: T
 ) {
   const imageCount = resolveProductImageCount(product);
+  const normalizedId = String(product._id);
 
   return {
     ...product,
+    _id: normalizedId,
     imageCount,
-    images: buildProductImagePaths(String(product._id), imageCount),
+    images: buildProductImagePaths(normalizedId, imageCount),
   };
 }
 

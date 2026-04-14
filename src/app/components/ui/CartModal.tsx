@@ -90,7 +90,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                         <div className="flex-shrink-0">
                           <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden">
                             <Image
-                              src={buildProductImageUrl(item.images?.[0], { width: 160, quality: 60 })}
+                              src={buildProductImageUrl(item.images?.[0], { variant: 'thumb' })}
                               alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                               width={56}
                               height={56}
@@ -158,7 +158,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       <div className="flex-shrink-0">
                         <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
                           <Image
-                            src={buildProductImageUrl(item.images?.[0], { width: 160, quality: 60 })}
+                            src={buildProductImageUrl(item.images?.[0], { variant: 'thumb' })}
                             alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                             width={80}
                             height={80}

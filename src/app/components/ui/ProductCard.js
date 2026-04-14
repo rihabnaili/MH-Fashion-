@@ -24,8 +24,7 @@ const ProductCard = ({ product, className = "" }) => {
 
   const productName = product.name?.[lang] || product.name?.fr || t("productName");
   const productImage = buildProductImageUrl(product.images?.[0], {
-    width: 480,
-    quality: 68,
+    variant: "thumb",
   });
   const actionLabel = lang === "ar" ? "اكتشف المنتج" : "Voir le produit";
 

@@ -15,8 +15,6 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    const { searchParams } = new URL(request.url);
-
     if (!mongoose.Types.ObjectId.isValid(params.productId)) {
       return NextResponse.json(
         { success: false, message: 'Product or image not found' },
@@ -32,9 +30,11 @@ export async function GET(
       );
     }
 
-    const variant = request.nextUrl.searchParams.get('v') === 'detail'
-      ? 'detail'
-      : 'thumb';
+    const requestedVariant = request.nextUrl.searchParams.get('v');
+    const variant: ProductImageVariant =
+      requestedVariant && requestedVariant in PRODUCT_IMAGE_VARIANTS
+        ? (requestedVariant as ProductImageVariant)
+        : 'thumb';
     const productObjectId = new mongoose.Types.ObjectId(params.productId);
 
     const storedVariant = await readStoredProductImageVariant(
@@ -78,19 +78,27 @@ export async function GET(
       );
     }
     
-    const mimeType = matches[1];
     const base64Data = matches[2];
     
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(base64Data, 'base64');
     const legacyVariant = PRODUCT_IMAGE_VARIANTS[variant as ProductImageVariant];
+    const resizeConfig =
+      variant === 'thumb'
+        ? {
+            width: legacyVariant.width,
+            height: legacyVariant.width,
+            fit: 'inside' as const,
+            withoutEnlargement: true,
+          }
+        : {
+            width: legacyVariant.width,
+            fit: 'inside' as const,
+            withoutEnlargement: true,
+          };
     const outputBuffer = await sharp(imageBuffer)
       .rotate()
-      .resize({
-        width: legacyVariant.width,
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
+      .resize(resizeConfig)
       .webp({ quality: legacyVariant.quality })
       .toBuffer();
     const contentType = 'image/webp';
