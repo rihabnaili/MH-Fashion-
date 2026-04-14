@@ -137,7 +137,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                 {products.map((product) => {
                   const productName =
                     product.name?.[lang as "fr" | "ar"] || product.name?.fr || t("productName");
-                  const actionLabel = lang === "ar" ? "عرض المنتج" : "Voir le produit";
+                  const actionLabel = lang === "ar" ? "شراء" : "Acheter";
 
                   return (
                     <div key={product._id} className="w-full">
@@ -193,7 +193,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className="inline-block px-2 py-1 text-xs font-medium text-black underline transition-colors hover:text-gray-600 sm:text-sm"
                   >
-                    {t("viewAllResults") || "Voir tous les résultats"}
+                    {t("viewAllResults") || "Voir tous les resultats"}
                   </Link>
                 </div>
               )}
