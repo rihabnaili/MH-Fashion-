@@ -5,14 +5,13 @@ import { useCart, CartItem } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import Image from 'next/image';
 import { useTranslations } from '@/app/hooks/useTranslations';
-import { Plus, Minus, Trash2, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Minus, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { buildProductImageUrl } from '@/lib/imageUrl';
 
 // Cart Item Component
 const CartItemCard = ({ 
   item, 
-  index, 
   lang, 
   t, 
   onSizeChange, 
@@ -21,13 +20,12 @@ const CartItemCard = ({
   onRemove 
 }: {
   item: CartItem;
-  index: number;
   lang: string;
   t: (key: string) => string;
-  onSizeChange: (itemId: string, oldSize: string, oldColor: string, newSize: string) => void;
-  onColorChange: (itemId: string, oldSize: string, oldColor: string, newColor: string) => void;
-  onQuantityChange: (itemId: string, size: string, color: string, quantity: number) => void;
-  onRemove: (itemId: string, size: string, color: string) => void;
+  onSizeChange: (cartItemId: string, newSize: string) => void;
+  onColorChange: (cartItemId: string, newColor: string) => void;
+  onQuantityChange: (cartItemId: string, quantity: number) => void;
+  onRemove: (cartItemId: string) => void;
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const productImages = item.images && item.images.length > 0 ? item.images : ['/home-media/set.jpg'];
@@ -158,7 +156,7 @@ const CartItemCard = ({
               {(item.availableSizes || []).map((size: string) => (
                 <button
                   key={size}
-                  onClick={() => onSizeChange(item._id, item.size, item.color, size)}
+                  onClick={() => onSizeChange(item.cartItemId, size)}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
                     item.size === size
                       ? 'border-black bg-black text-white'
@@ -180,7 +178,7 @@ const CartItemCard = ({
               {(item.availableColors || []).map((color: string) => (
                 <button
                   key={color}
-                  onClick={() => onColorChange(item._id, item.size, item.color, color)}
+                  onClick={() => onColorChange(item.cartItemId, color)}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
                     item.color === color
                       ? 'border-black bg-black text-white'
@@ -218,7 +216,7 @@ const CartItemCard = ({
             </label>
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => onQuantityChange(item._id, item.size, item.color, item.quantity - 1)}
+                onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
                 className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:bg-gray-100 transition-colors flex items-center justify-center"
               >
                 <Minus className="w-5 h-5 text-gray-600" />
@@ -227,7 +225,7 @@ const CartItemCard = ({
                 {item.quantity}
               </span>
               <button
-                onClick={() => onQuantityChange(item._id, item.size, item.color, item.quantity + 1)}
+                onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
                 className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:bg-gray-100 transition-colors flex items-center justify-center"
               >
                 <Plus className="w-5 h-5 text-gray-600" />
@@ -244,7 +242,7 @@ const CartItemCard = ({
 
           {/* Remove Button */}
           <button
-            onClick={() => onRemove(item._id, item.size, item.color)}
+            onClick={() => onRemove(item.cartItemId)}
             className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg text-sm font-medium transition-colors"
           >
             {t("delete")}
@@ -270,22 +268,26 @@ export default function CartPage() {
   const totalPrice = getTotalPrice();
   const totalDiscount = getTotalDiscount();
 
-  const handleQuantityChange = (itemId: string, size: string, color: string, newQuantity: number) => {
+  const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
     if (newQuantity >= 1) {
-      updateQuantity(itemId, size, color, newQuantity);
+      updateQuantity(cartItemId, newQuantity);
     }
   };
 
-  const handleRemoveItem = (itemId: string, size: string, color: string) => {
-    removeFromCart(itemId, size, color);
+  const handleRemoveItem = (cartItemId: string) => {
+    removeFromCart(cartItemId);
   };
 
-  const handleSizeChange = (itemId: string, oldSize: string, oldColor: string, newSize: string) => {
-    updateItemSizeColor(itemId, oldSize, oldColor, newSize, oldColor);
+  const handleSizeChange = (cartItemId: string, newSize: string) => {
+    const item = items.find((entry) => entry.cartItemId === cartItemId);
+    if (!item) return;
+    updateItemSizeColor(cartItemId, newSize, item.color);
   };
 
-  const handleColorChange = (itemId: string, oldSize: string, oldColor: string, newColor: string) => {
-    updateItemSizeColor(itemId, oldSize, oldColor, oldSize, newColor);
+  const handleColorChange = (cartItemId: string, newColor: string) => {
+    const item = items.find((entry) => entry.cartItemId === cartItemId);
+    if (!item) return;
+    updateItemSizeColor(cartItemId, item.size, newColor);
   };
 
   // Check if all items have size and color selected
@@ -455,9 +457,8 @@ export default function CartPage() {
               <div className="space-y-6">
                 {items.map((item, index) => (
                   <CartItemCard
-                    key={`${item._id}-${item.size || 'no-size'}-${item.color || 'no-color'}-${index}`}
+                    key={item.cartItemId}
                     item={item}
-                    index={index}
                     lang={lang}
                     t={t}
                     onSizeChange={handleSizeChange}
