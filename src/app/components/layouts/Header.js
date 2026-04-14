@@ -18,16 +18,13 @@ const navigationItems = [
   { key: "contact", href: "/contact" },
 ];
 
-function SearchForm({
-  query,
-  setQuery,
-  onSubmit,
-  t,
-  isCompact = false,
-}) {
+function SearchForm({ query, setQuery, onSubmit, t, isCompact = false }) {
   return (
     <form onSubmit={onSubmit} className="w-full">
-      <label className="sr-only" htmlFor={isCompact ? "mobile-header-search" : "header-search"}>
+      <label
+        className="sr-only"
+        htmlFor={isCompact ? "mobile-header-search" : "header-search"}
+      >
         {t("search")}
       </label>
       <div className="flex items-center rounded-full border border-[#d8d8d8] bg-[#f7f7f7] px-3">
@@ -123,7 +120,11 @@ export default function Header() {
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#111111] transition-colors hover:border-black lg:hidden"
                 aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </button>
 
               <Link href="/" aria-label={t("home")} className="shrink-0">
@@ -225,40 +226,10 @@ export default function Header() {
             </div>
 
             <div className="mt-auto space-y-4 border-t border-[#e6e6e6] pt-5">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setCartOpen(true);
-                }}
-                className="flex w-full items-center justify-between rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white"
-              >
-                <span>{t("viewCart")}</span>
-                <span>{cartItemCount}</span>
-              </button>
-
-              <div className="rounded-2xl border border-[#e1e1e1] bg-[#f7f7f7] p-4 text-sm text-[#4d4d4d]">
-                <p className="font-semibold text-[#111111]">{t("contact")}</p>
-                <a
-                  href="tel:+21654407135"
-                  className="mt-3 block transition-colors hover:text-black"
-                >
-                  {t("phone")}: +216 54 407 135
-                </a>
-                <a
-                  href="mailto:mhclothes11@gmail.com"
-                  className="mt-2 block break-all transition-colors hover:text-black"
-                >
-                  {t("email")}: mhclothes11@gmail.com
-                </a>
-              </div>
-
               <LanguageToggle
                 align={isRTL ? "right" : "left"}
                 direction="up"
-                wrapperClassName="w-full"
-                buttonClassName="w-full justify-between rounded-2xl px-4 py-3 shadow-none"
-                menuClassName="w-full min-w-0"
+                buttonClassName="shadow-none"
               />
             </div>
           </div>
