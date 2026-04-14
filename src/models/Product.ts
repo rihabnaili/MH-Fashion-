@@ -15,6 +15,7 @@ export interface IProduct extends Document {
   category: string;
   availability: boolean;
   images: string[];
+  imageCount: number;
   description?: {
     fr: string;
     ar: string;
@@ -68,8 +69,13 @@ const ProductSchema: Schema = new Schema({
   },
   images: [{ 
     type: String, 
-    required: true 
+    required: false 
   }],
+  imageCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   description: {
     fr: { type: String, trim: true },
     ar: { type: String, trim: true }

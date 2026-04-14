@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
+import { normalizeProductImages } from '@/lib/productImageUrls';
+import { storefrontProductProjection } from '@/lib/storefrontProducts';
 
 // GET products for frontend display
 export async function GET(request: NextRequest) {
@@ -45,33 +47,18 @@ export async function GET(request: NextRequest) {
         { $skip: skip },
         { $limit: limit },
         {
-          $project: {
-            name: 1,
-            price: 1,
-            originalPrice: 1,
-            discount: 1,
-            category: 1,
-            availability: 1,
-            size: 1,
-            color: 1,
-            disabledColors: 1,
-            description: 1,
-            createdAt: 1,
-            imageCount: { $size: { $ifNull: ['$images', []] } }
-          }
+          $project: storefrontProductProjection
         }
       ]),
       Product.countDocuments(query)
     ]);
-
+    
     const productsWithImageUrls = products.map((product: any) => {
-      const imageCount = typeof product.imageCount === 'number' ? product.imageCount : 0;
+      const normalizedProduct = normalizeProductImages(product);
 
       return {
-        ...product,
-        images: imageCount > 0
-          ? Array.from({ length: imageCount }, (_, index) => `/api/images/${product._id}/${index}`)
-          : ['/home-media/set.jpg']
+        ...normalizedProduct,
+        images: normalizedProduct.images.slice(0, 1),
       };
     });
     
@@ -80,7 +67,7 @@ export async function GET(request: NextRequest) {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         products: productsWithImageUrls,
@@ -94,6 +81,8 @@ export async function GET(request: NextRequest) {
         }
       }
     });
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    return response;
     
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -140,10 +129,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    body.disabledColors = Array.isArray(body.disabledColors)
-      ? body.disabledColors.filter((color: string) => body.color.includes(color))
-      : [];
     
     const product = new Product(body);
     await product.save();

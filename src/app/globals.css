@@ -2,12 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply bg-offwhite text-black font-montserrat;
+  @apply font-montserrat text-black antialiased;
+  background: #f6f6f6;
+  color: #111111;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-noto-sans-arabic), Arial, sans-serif;
 }
 
 .font-title {
-  @apply font-montserrat;
+  @apply font-cinzel;
 }
 
 .font-text {
@@ -47,123 +61,9 @@ body {
   @apply scale-105;
 }
 
-/* Header layout - Override RTL behavior ONLY for header */
-header {
-  direction: ltr !important;
-}
-
-/* Force header flexbox to maintain left-to-right order */
-header .flex {
-  flex-direction: row !important;
-}
-
-/* Override RTL spacing for header elements */
-header .space-x-3 > * + * {
-  margin-left: 0.75rem !important;
-  margin-right: 0 !important;
-}
-
-header .space-x-8 > * + * {
-  margin-left: 2rem !important;
-  margin-right: 0 !important;
-}
-
-/* Ensure header positioning stays consistent */
-header .justify-between {
-  justify-content: space-between !important;
-}
-
-header .justify-center {
-  justify-content: center !important;
-}
-
-header .ml-auto {
-  margin-left: auto !important;
-  margin-right: 0 !important;
-}
-
-header .mr-auto {
-  margin-right: auto !important;
-  margin-left: 0 !important;
-}
-
-/* RTL support using Tailwind's built-in RTL utilities */
-[dir="rtl"] .ltr\:lg:col-start-2 {
-  @apply lg:col-start-1;
-}
-
-[dir="rtl"] .rtl\:lg:col-start-1 {
-  @apply lg:col-start-2;
-}
-
-[dir="rtl"] .ltr\:text-left {
-  @apply text-right;
-}
-
-[dir="rtl"] .rtl\:text-right {
-  @apply text-left;
-}
-
-[dir="rtl"] .ltr\:ml-2 {
-  @apply mr-2 ml-0;
-}
-
-[dir="rtl"] .rtl\:mr-2 {
-  @apply ml-2 mr-0;
-}
-
-[dir="rtl"] .rtl\:rotate-180 {
-  @apply rotate-0;
-}
-
-/* RTL HeroSection adjustments */
-[dir="rtl"] .hero-text-left {
-  @apply text-right;
-}
-
-[dir="rtl"] .hero-text-left .pl-8 {
-  @apply pl-0 pr-8;
-}
-
-[dir="rtl"] .hero-text-left .lg\:pl-16 {
-  @apply pl-0 pr-16;
-}
-
-[dir="rtl"] .hero-text-left .ml-2 {
-  @apply ml-0 mr-2;
-}
-
-/* RTL grid column adjustments - ensure image and text stay side by side */
-[dir="rtl"] .hero-grid {
-  direction: rtl;
-}
-
-[dir="rtl"] .hero-grid > *:first-child {
-  grid-column: 2;
-}
-
-[dir="rtl"] .hero-grid > *:last-child {
-  grid-column: 1;
-}
-
-/* Ensure the grid maintains 2 columns in RTL */
-[dir="rtl"] .hero-grid {
-  grid-template-columns: 1fr 1fr;
-}
-
-/* RTL text alignment for hero section */
-[dir="rtl"] .hero-text-left {
-  text-align: right;
-}
-
-/* RTL button arrow direction */
-[dir="rtl"] .hero-text-left .ml-2 {
-  margin-left: 0;
-  margin-right: 0.5rem;
-}
-
-[dir="rtl"] .hero-text-left button svg {
-  transform: rotate(180deg);
+::selection {
+  background: #111111;
+  color: #ffffff;
 }
 
 /* Fix cursor for clickable icons */

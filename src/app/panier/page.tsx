@@ -5,13 +5,14 @@ import { useCart, CartItem } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import Image from 'next/image';
 import { useTranslations } from '@/app/hooks/useTranslations';
-import { Plus, Minus, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingBag, Phone, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { PRODUCT_SIZES } from '@/lib/productOptions';
+import { buildProductImageUrl } from '@/lib/imageUrl';
 
 // Cart Item Component
 const CartItemCard = ({ 
   item, 
+  index, 
   lang, 
   t, 
   onSizeChange, 
@@ -20,24 +21,16 @@ const CartItemCard = ({
   onRemove 
 }: {
   item: CartItem;
+  index: number;
   lang: string;
   t: (key: string) => string;
-  onSizeChange: (cartItemId: string, newSize: string) => void;
-  onColorChange: (cartItemId: string, newColor: string) => void;
-  onQuantityChange: (cartItemId: string, quantity: number) => void;
-  onRemove: (cartItemId: string) => void;
+  onSizeChange: (itemId: string, oldSize: string, oldColor: string, newSize: string) => void;
+  onColorChange: (itemId: string, oldSize: string, oldColor: string, newColor: string) => void;
+  onQuantityChange: (itemId: string, size: string, color: string, quantity: number) => void;
+  onRemove: (itemId: string, size: string, color: string) => void;
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const productImages = item.images && item.images.length > 0 ? item.images : ['/home-media/set.jpg'];
-  const availableSizes = new Set(item.availableSizes || []);
-  const allColors = item.allColors && item.allColors.length > 0
-    ? item.allColors
-    : item.availableColors || [];
-  const availableColors = new Set(item.availableColors || []);
-  const colorOptions = item.color && !allColors.includes(item.color)
-    ? [...allColors, item.color]
-    : allColors;
-  const selectedColorUnavailable = !!item.color && !availableColors.has(item.color);
   
   const goToNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -60,11 +53,14 @@ const CartItemCard = ({
             {/* Main Image */}
             <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
               <Image
-                src={productImages[currentImageIndex]}
+                src={buildProductImageUrl(productImages[currentImageIndex], {
+                  variant: 'gallery',
+                })}
                 alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                 fill
                 className="object-contain bg-gray-100"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                unoptimized
               />
               
               {/* Navigation Arrows */}
@@ -73,14 +69,16 @@ const CartItemCard = ({
                   <button
                     type="button"
                     onClick={goToPreviousImage}
-                    className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 ${lang === 'ar' ? 'right-4' : 'left-4'}`}
+                    aria-label={lang === 'ar' ? 'الصورة السابقة' : 'Image precedente'}
+                    className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'right-4' : 'left-4'}`}
                   >
                     <ChevronLeft className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
                   </button>
                   <button
                     type="button"
                     onClick={goToNextImage}
-                    className={`absolute top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 ${lang === 'ar' ? 'left-4' : 'right-4'}`}
+                    aria-label={lang === 'ar' ? 'الصورة التالية' : 'Image suivante'}
+                    className={`absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/92 p-2 text-gray-800 shadow-lg transition-all duration-200 touch-manipulation opacity-100 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 ${lang === 'ar' ? 'left-4' : 'right-4'}`}
                   >
                     <ChevronRight className={`w-5 h-5 ${lang === 'ar' ? 'rotate-180' : ''}`} />
                   </button>
@@ -103,10 +101,11 @@ const CartItemCard = ({
                     }`}
                   >
                     <Image
-                      src={image}
+                      src={buildProductImageUrl(image, { variant: 'thumb' })}
                       alt={`${item.name[lang as 'fr' | 'ar'] || item.name.fr} - Thumbnail ${imgIndex + 1}`}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   </button>
                 ))}
@@ -156,30 +155,19 @@ const CartItemCard = ({
               {t("size")}: {!item.size && <span className="text-red-500">*</span>}
             </label>
             <div className="flex flex-wrap gap-2">
-              {PRODUCT_SIZES.map((size) => {
-                const isAvailable = availableSizes.has(size);
-
-                return (
+              {(item.availableSizes || []).map((size: string) => (
                 <button
-                  type="button"
                   key={size}
-                  onClick={() => {
-                    if (isAvailable) {
-                      onSizeChange(item.cartItemId, size);
-                    }
-                  }}
-                  disabled={!isAvailable}
+                  onClick={() => onSizeChange(item._id, item.size, item.color, size)}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
-                    item.size === size && isAvailable
+                    item.size === size
                       ? 'border-black bg-black text-white'
-                      : isAvailable
-                        ? 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
-                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
                   }`}
                 >
                   {size}
                 </button>
-              )})}
+              ))}
             </div>
           </div>
 
@@ -189,38 +177,20 @@ const CartItemCard = ({
               {t("color")}: {!item.color && <span className="text-red-500">*</span>}
             </label>
             <div className="flex flex-wrap gap-2">
-              {colorOptions.map((color: string) => {
-                const isAvailable = availableColors.has(color);
-
-                return (
+              {(item.availableColors || []).map((color: string) => (
                 <button
-                  type="button"
                   key={color}
-                  onClick={() => {
-                    if (isAvailable) {
-                      onColorChange(item.cartItemId, color);
-                    }
-                  }}
-                  disabled={!isAvailable}
+                  onClick={() => onColorChange(item._id, item.size, item.color, color)}
                   className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${
-                    item.color === color && isAvailable
+                    item.color === color
                       ? 'border-black bg-black text-white'
-                      : isAvailable
-                        ? 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
-                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-300 text-gray-700 hover:border-black hover:bg-gray-50'
                   }`}
                 >
                   {color}
                 </button>
-              )})}
+              ))}
             </div>
-            {selectedColorUnavailable && (
-              <p className="mt-2 text-sm text-gray-500">
-                {lang === 'ar'
-                  ? 'اللون المحدد سابقا غير متوفر حاليا.'
-                  : 'La couleur selectionnee precedemment n est plus disponible.'}
-              </p>
-            )}
           </div>
 
           {/* Price Display */}
@@ -248,8 +218,7 @@ const CartItemCard = ({
             </label>
             <div className="flex items-center space-x-3">
               <button
-                type="button"
-                onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
+                onClick={() => onQuantityChange(item._id, item.size, item.color, item.quantity - 1)}
                 className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:bg-gray-100 transition-colors flex items-center justify-center"
               >
                 <Minus className="w-5 h-5 text-gray-600" />
@@ -258,8 +227,7 @@ const CartItemCard = ({
                 {item.quantity}
               </span>
               <button
-                type="button"
-                onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
+                onClick={() => onQuantityChange(item._id, item.size, item.color, item.quantity + 1)}
                 className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:bg-gray-100 transition-colors flex items-center justify-center"
               >
                 <Plus className="w-5 h-5 text-gray-600" />
@@ -276,8 +244,7 @@ const CartItemCard = ({
 
           {/* Remove Button */}
           <button
-            type="button"
-            onClick={() => onRemove(item.cartItemId)}
+            onClick={() => onRemove(item._id, item.size, item.color)}
             className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg text-sm font-medium transition-colors"
           >
             {t("delete")}
@@ -302,48 +269,34 @@ export default function CartPage() {
 
   const totalPrice = getTotalPrice();
   const totalDiscount = getTotalDiscount();
-  const unavailableSelectionMessage = lang === 'ar'
-    ? 'يرجى اختيار مقاس ولون متاحين لكل المنتجات'
-    : 'Veuillez selectionner une taille et une couleur disponibles pour tous les articles';
 
-  const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
+  const handleQuantityChange = (itemId: string, size: string, color: string, newQuantity: number) => {
     if (newQuantity >= 1) {
-      updateQuantity(cartItemId, newQuantity);
+      updateQuantity(itemId, size, color, newQuantity);
     }
   };
 
-  const handleRemoveItem = (cartItemId: string) => {
-    removeFromCart(cartItemId);
+  const handleRemoveItem = (itemId: string, size: string, color: string) => {
+    removeFromCart(itemId, size, color);
   };
 
-  const handleSizeChange = (cartItemId: string, newSize: string) => {
-    const currentItem = items.find((item) => item.cartItemId === cartItemId);
-    if (!currentItem) return;
-
-    updateItemSizeColor(cartItemId, newSize, currentItem.color);
+  const handleSizeChange = (itemId: string, oldSize: string, oldColor: string, newSize: string) => {
+    updateItemSizeColor(itemId, oldSize, oldColor, newSize, oldColor);
   };
 
-  const handleColorChange = (cartItemId: string, newColor: string) => {
-    const currentItem = items.find((item) => item.cartItemId === cartItemId);
-    if (!currentItem) return;
-
-    updateItemSizeColor(cartItemId, currentItem.size, newColor);
+  const handleColorChange = (itemId: string, oldSize: string, oldColor: string, newColor: string) => {
+    updateItemSizeColor(itemId, oldSize, oldColor, oldSize, newColor);
   };
 
-  // Check if all items have an available size and color selected.
-  const allItemsHaveSizeColor = items.every((item) => {
-    const sizeIsAvailable = !!item.size && (item.availableSizes || []).includes(item.size);
-    const colorIsAvailable = !!item.color && (item.availableColors || []).includes(item.color);
-
-    return sizeIsAvailable && colorIsAvailable;
-  });
+  // Check if all items have size and color selected
+  const allItemsHaveSizeColor = items.every(item => item.size && item.color);
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Check if all items have size and color selected
     if (!allItemsHaveSizeColor) {
-      alert(unavailableSelectionMessage);
+      alert(t("pleaseSelectSizeAndColor") || "Veuillez sélectionner une taille et une couleur pour tous les articles");
       return;
     }
 
@@ -492,7 +445,6 @@ export default function CartPage() {
                   Panier ({items.length} article{items.length > 1 ? 's' : ''})
                 </h1>
                 <button
-                  type="button"
                   onClick={clearCart}
                   className="text-red-600 hover:text-red-700 text-sm font-medium self-start sm:self-auto"
                 >
@@ -501,10 +453,11 @@ export default function CartPage() {
               </div>
 
               <div className="space-y-6">
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <CartItemCard
-                    key={item.cartItemId}
+                    key={`${item._id}-${item.size || 'no-size'}-${item.color || 'no-color'}-${index}`}
                     item={item}
+                    index={index}
                     lang={lang}
                     t={t}
                     onSizeChange={handleSizeChange}
@@ -592,7 +545,7 @@ export default function CartPage() {
                   {!allItemsHaveSizeColor && (
                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-sm text-yellow-800">
-                        ⚠️ {unavailableSelectionMessage}
+                        ⚠️ {t("pleaseSelectSizeAndColor") || "Veuillez sélectionner une taille et une couleur pour tous les articles"}
                       </p>
                     </div>
                   )}

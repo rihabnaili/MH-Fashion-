@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
+import mongoose from 'mongoose';
+import {
+  deleteStoredProductImages,
+  fileToProductImageSource,
+  replaceStoredProductImages,
+} from '@/lib/productImageStorage';
+import { normalizeProductImages } from '@/lib/productImageUrls';
 
 // POST new product with image uploads
 export async function POST(request: NextRequest) {
@@ -41,9 +48,6 @@ export async function POST(request: NextRequest) {
     if (product.color && Array.isArray(product.color)) {
       product.color = product.color.filter((c: string) => c && c.trim() !== '');
     }
-    if (product.disabledColors && Array.isArray(product.disabledColors)) {
-      product.disabledColors = product.disabledColors.filter((c: string) => c && c.trim() !== '');
-    }
     if (product.size && Array.isArray(product.size)) {
       product.size = product.size.filter((s: string) => s && s.trim() !== '');
     }
@@ -82,10 +86,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    product.disabledColors = Array.isArray(product.disabledColors)
-      ? product.disabledColors.filter((color: string) => product.color.includes(color))
-      : [];
     
     // Validate name structure
     if (!product.name.fr || !product.name.ar) {
@@ -98,41 +98,41 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Convert images to base64 and store in MongoDB
-    const imageBase64Strings: string[] = [];
-    
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i] as File;
-      
-      if (!image) continue;
-      
-      // Get mime type
-      const mimeType = image.type || 'image/jpeg';
-      
-      // Convert File to Buffer
-      const bytes = await image.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      // Convert to base64
-      const base64String = buffer.toString('base64');
-      const base64DataUri = `data:${mimeType};base64,${base64String}`;
-      
-      // Add to base64 images array
-      imageBase64Strings.push(base64DataUri);
+    const uploadedFiles = images.filter((image): image is File => image instanceof File);
+    if (uploadedFiles.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'At least one image file is required',
+        },
+        { status: 400 }
+      );
     }
-    
-    // Create product with base64 images
-    const newProduct = new Product({
-      ...product,
-      images: imageBase64Strings
-    });
-    
-    await newProduct.save();
+
+    const productId = new mongoose.Types.ObjectId();
+    const imageSources = await Promise.all(uploadedFiles.map((image) => fileToProductImageSource(image)));
+
+    await replaceStoredProductImages(productId, imageSources);
+
+    let newProduct;
+    try {
+      newProduct = new Product({
+        _id: productId,
+        ...product,
+        images: [],
+        imageCount: imageSources.length,
+      });
+
+      await newProduct.save();
+    } catch (error) {
+      await deleteStoredProductImages(productId);
+      throw error;
+    }
     
     return NextResponse.json({
       success: true,
       message: 'Product created successfully',
-      data: newProduct
+      data: normalizeProductImages(newProduct.toObject())
     }, { status: 201 });
     
   } catch (error) {
@@ -190,35 +190,33 @@ export async function GET(request: NextRequest) {
     
     const skip = (page - 1) * limit;
     
-    const [products, total] = await Promise.all([
-      Product.aggregate([
-        { $match: query },
-        { $sort: { createdAt: -1 } },
-        { $skip: skip },
-        { $limit: limit },
-        {
-          $project: {
-            name: 1,
-            price: 1,
-            category: 1,
-            availability: 1,
-            disabledColors: 1,
-            createdAt: 1,
-            imageCount: { $size: { $ifNull: ['$images', []] } }
-          }
-        }
-      ]),
-      Product.countDocuments(query)
+    const products = await Product.aggregate([
+      { $match: query },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          name: 1,
+          price: 1,
+          category: 1,
+          availability: 1,
+          createdAt: 1,
+          imageCount: {
+            $ifNull: ['$imageCount', { $size: { $ifNull: ['$images', []] } }],
+          },
+        },
+      },
     ]);
-
+    
+    const total = await Product.countDocuments(query);
+    
     const productsWithImageUrls = products.map((product: any) => {
-      const imageCount = typeof product.imageCount === 'number' ? product.imageCount : 0;
+      const normalizedProduct = normalizeProductImages(product);
 
       return {
-        ...product,
-        images: imageCount > 0
-          ? Array.from({ length: imageCount }, (_, index) => `/api/images/${product._id}/${index}`)
-          : ['/home-media/set.jpg']
+        ...normalizedProduct,
+        images: normalizedProduct.images.slice(0, 1),
       };
     });
     

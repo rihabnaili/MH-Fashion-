@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import Link from 'next/link';
+import { buildProductImageUrl } from '@/lib/imageUrl';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -33,16 +34,16 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const totalDiscount = getTotalDiscount();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div className="fixed inset-0 z-[70]">
+      <div className="flex min-h-screen items-center justify-center px-4 py-6 sm:px-6">
         {/* Background overlay */}
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+          className="absolute inset-0 bg-black/50 transition-opacity" 
           onClick={onClose}
         />
 
         {/* Modal */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full max-h-[95vh] w-[95vw] sm:w-full">
+        <div className="relative z-[71] w-full max-w-2xl max-h-[95vh] overflow-hidden rounded-xl bg-white text-left shadow-xl sm:rounded-2xl">
           {/* Header */}
           <div className="bg-black px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -88,11 +89,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                         <div className="flex-shrink-0">
                           <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden">
                             <Image
-                              src={item.images[0] || '/home-media/set.jpg'}
+                              src={buildProductImageUrl(item.images?.[0], { variant: 'thumb' })}
                               alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                               width={56}
                               height={56}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           </div>
                         </div>
@@ -158,11 +160,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       <div className="flex-shrink-0">
                         <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
                           <Image
-                            src={item.images[0] || '/home-media/set.jpg'}
+                            src={buildProductImageUrl(item.images?.[0], { variant: 'thumb' })}
                             alt={item.name[lang as 'fr' | 'ar'] || item.name.fr}
                             width={80}
                             height={80}
                             className="w-full h-full object-cover"
+                            unoptimized
                           />
                         </div>
                       </div>

@@ -23,13 +23,13 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-offwhite z-50 transform transition-transform duration-300 ease-in-out shadow-xl font-text
+        className={`fixed top-0 left-0 z-50 h-full w-80 bg-[#f6f6f6] font-text shadow-xl transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           lg:hidden
         `}
@@ -47,7 +47,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               key={index}
               href="#"
               onClick={onClose}
-              className="block px-6 py-4 text-black hover:bg-yellow-50 hover:text-gold transition-colors border-b border-gray-100 text-sm"
+              className="block border-b border-gray-100 px-6 py-4 text-sm text-black transition-colors hover:bg-[#ededed] hover:text-black"
             >
               {item}
             </a>

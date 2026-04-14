@@ -1,90 +1,85 @@
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { useLanguage } from "@/app/context/LanguageContext";
-import { useCart } from "@/app/context/CartContext";
 import Image from "next/image";
+import { buildProductImageUrl } from "@/lib/imageUrl";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, className = "" }) => {
   const t = useTranslations();
   const { lang } = useLanguage();
-  const router = useRouter();
-  const { addToCart } = useCart();
   const [imageError, setImageError] = useState(false);
 
   const handleImageError = () => {
     setImageError(true);
   };
 
-  const handleBuyClick = () => {
-    // Add to cart without size/color (user will select on cart page)
-    addToCart(product, '', '', 1);
-    // Redirect to cart page
-    router.push('/panier');
-  };
+  const discountPercentage =
+    product.originalPrice && product.originalPrice > product.price
+      ? Math.round(
+          ((product.originalPrice - product.price) / product.originalPrice) *
+            100
+        )
+      : 0;
 
-  // Calculate discount percentage
-  const discountPercentage = product.originalPrice && product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
-
-  // Get product name in current language
   const productName = product.name?.[lang] || product.name?.fr || t("productName");
-
-  // Get first image or fallback
-  const productImage = product.images?.[0] || '/home-media/set.jpg';
+  const productImage = buildProductImageUrl(product.images?.[0], {
+    variant: "thumb",
+  });
+  const actionLabel = lang === "ar" ? "اكتشف المنتج" : "Voir le produit";
 
   return (
-    <>
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden group hover:shadow-md transition-shadow relative border-2 border-black">
-        <div className="relative">
-          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-            {imageError ? (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">Image non disponible</span>
-              </div>
-            ) : (
-              <Image
-                src={productImage}
-                alt={productName}
-                fill
-                className="object-contain bg-gray-100"
-                onError={handleImageError}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              />
-            )}
-            
+    <div
+      className={`group relative flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-[#dddddd] bg-white shadow-[0_25px_60px_-42px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-36px_rgba(0,0,0,0.22)] ${className}`}
+    >
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#f3f3f3]">
+        {discountPercentage > 0 && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-[#9d3a36] shadow-sm">
+            -{discountPercentage}%
+          </span>
+        )}
+
+        {imageError ? (
+          <div className="flex h-full w-full items-center justify-center bg-[#ededed] px-6 text-center text-sm text-[#707070]">
+            Image non disponible
           </div>
-          
-          {/* Black separator line between image and content */}
-          <div className="w-full h-0.5 bg-black"></div>
+        ) : (
+          <Image
+            src={productImage}
+            alt={productName}
+            fill
+            className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
+            onError={handleImageError}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
+            unoptimized
+          />
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col px-4 pb-5 pt-4 text-center">
+        <h3 className="min-h-[2.7rem] text-sm font-semibold uppercase tracking-[0.08em] text-[#111111] sm:text-[0.95rem]">
+          {productName}
+        </h3>
+
+        <div className="mt-3 flex items-center justify-center gap-2">
+          {product.originalPrice && product.originalPrice > product.price && (
+            <span className="text-xs text-[#a45f58] line-through">
+              {product.originalPrice.toFixed(1)} {t("dt")}
+            </span>
+          )}
+          <span className="text-base font-semibold text-[#111111]">
+            {product.price.toFixed(1)} {t("dt")}
+          </span>
         </div>
 
-        <div className="p-3 text-center">
-          <h3 className="font-medium text-black mb-2 text-sm">{productName}</h3>
-          
-          {/* Price section - matching the design */}
-          <div className="flex items-center justify-center space-x-2 mb-3">
-            {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-xs text-red-500 line-through">
-                {product.originalPrice.toFixed(1)} د.ت
-              </span>
-            )}
-            <span className="text-sm font-bold text-black">
-              {product.price.toFixed(1)} د.ت
-            </span>
-          </div>
-          
-          {/* Buy button - matching the design */}
-          <button 
-            onClick={handleBuyClick}
-            className="w-full bg-black hover:bg-gray-800 text-white py-2 rounded text-sm font-medium transition-colors"
-          >
-            {lang === 'ar' ? 'شراء' : 'Acheter'}
-          </button>
-        </div>
+        <Link
+          href={`/produit/${product._id}`}
+          className="mt-5 inline-flex items-center justify-center rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
+        >
+          {actionLabel}
+        </Link>
       </div>
-    </>
+    </div>
   );
 };
 

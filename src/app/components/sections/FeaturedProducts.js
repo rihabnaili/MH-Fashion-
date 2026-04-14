@@ -5,71 +5,146 @@ import Link from "next/link";
 import ProductCard from "../ui/ProductCard";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { useProducts } from "@/app/hooks/useProducts";
-import { Loader2, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/app/context/LanguageContext";
+import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 
-const HOME_PRODUCTS_LIMIT = 8;
+const homeCopy = {
+  fr: {
+    sectionAction: "Explorer la selection",
+    catalogEyebrow: "Catalogue MH",
+    catalogDescription: "Les pieces les plus recentes restent visibles ici.",
+    catalogAction: "Voir le catalogue complet",
+    summary: (visible, total) => `Affichage de ${visible} sur ${total} produits`,
+  },
+  ar: {
+    sectionAction: "اكتشف القسم",
+    catalogEyebrow: "كتالوج MH",
+    catalogDescription:
+      "هنا تظهر احدث القطع مع زر واضح يقود مباشرة الى الكتالوج الكامل حتى يرى العميل كل المخزون.",
+    catalogAction: "عرض كل المنتجات",
+    summary: (visible, total) => `عرض ${visible} من اصل ${total} منتج`,
+  },
+};
+
+const categorySections = [
+  {
+    key: "ensembles",
+    href: "/ensembles",
+    eyebrow: { fr: "Silhouettes completes", ar: "تنسيقات كاملة" },
+    description: {
+      fr: "Des looks deja composes pour acheter plus vite sans perdre le ton premium du magasin.",
+      ar: "اطلالات جاهزة ومنسقة تساعد الزائر يلقى اللوك كامل بسرعة.",
+    },
+  },
+  {
+    key: "tShirtsPolos",
+    href: "/t-shirts-polos",
+    eyebrow: { fr: "Essentiels legers", ar: "اساسيات خفيفة" },
+    description: {
+      fr: "Une selection simple et nette pour le quotidien, avec des pieces faciles a associer.",
+      ar: "قمصان وبولو بقصات نظيفة وسهلة للتنسيق اليومي.",
+    },
+  },
+  {
+    key: "shortsPantalons",
+    href: "/shorts-pantalons",
+    eyebrow: { fr: "Bases du dressing", ar: "قطع اساسية" },
+    description: {
+      fr: "Pantalons et shorts presentes avec plus d'espace pour mieux valoriser les images produit.",
+      ar: "شورتات وبناطيل مع عرض اهدأ يبرز الصورة والسعر بشكل اوضح.",
+    },
+  },
+  {
+    key: "chemises",
+    href: "/chemises",
+    eyebrow: { fr: "Editions plus habillees", ar: "اختيارات ارقى" },
+    description: {
+      fr: "Des chemises pour renforcer la partie habillee du catalogue sans quitter l'identite MH.",
+      ar: "قمصان تعطي للمحل طابع ارقى وتحافظ على هوية MH.",
+    },
+  },
+];
+
+function LoadingGrid({ count }) {
+  return (
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={index}
+          className="h-[23rem] animate-pulse rounded-[1.7rem] border border-[#dddddd] bg-white/80"
+        />
+      ))}
+    </div>
+  );
+}
+
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  href,
+  actionLabel,
+  isRTL,
+}) {
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  return (
+    <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
+      <div className={isRTL ? "md:text-right" : ""}>
+        <p className="mb-3 text-xs uppercase tracking-[0.38em] text-[#8b8b8b]">
+          {eyebrow}
+        </p>
+        <h2 className="text-3xl font-semibold tracking-[0.08em] text-[#111111] sm:text-4xl">
+          {title}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[#5b5b5b] sm:text-base">
+          {description}
+        </p>
+      </div>
+
+      <Link
+        href={href}
+        className="inline-flex items-center gap-2 self-start rounded-full border border-[#d5d5d5] bg-white px-5 py-3 text-sm font-semibold text-[#111111] transition-colors hover:border-black hover:bg-[#f5f5f5]"
+      >
+        {actionLabel}
+        <ArrowIcon className="h-4 w-4" />
+      </Link>
+    </div>
+  );
+}
 
 export default function FeaturedProducts() {
   const t = useTranslations();
-
-  // Fetch the newest products for the home page preview.
+  const { lang, isRTL } = useLanguage();
+  const copy = homeCopy[lang] || homeCopy.fr;
   const { products, isLoading, error, pagination } = useProducts({
-    limit: HOME_PRODUCTS_LIMIT,
+    limit: 24,
     sortBy: "createdAt",
-    sortOrder: "desc"
+    sortOrder: "desc",
   });
+  const featuredProducts = products.slice(0, 8);
 
-  const totalProducts = pagination?.totalProducts ?? products.length;
-  const visibleStart = totalProducts > 0 ? 1 : 0;
-  const visibleEnd = totalProducts > 0 ? Math.min(products.length, totalProducts) : 0;
-
-  if (isLoading) {
+  if (error && !products.length) {
     return (
-      <section className="py-16 bg-offwhite">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold font-montserrat text-center mb-12 text-black">
-            {t("newArrivals")}
-          </h2>
-
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
-            <span className="ml-3 text-gray-600">{t("loadingProducts")}</span>
+      <section className="bg-[#f6f6f6] py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-[18rem] items-center justify-center rounded-[2rem] border border-[#dddddd] bg-white px-6 text-center shadow-[0_25px_70px_-45px_rgba(0,0,0,0.18)]">
+            <div className="flex flex-col items-center gap-3">
+              <AlertCircle className="h-8 w-8 text-[#bc5b52]" />
+              <span className="text-[#5b5b5b]">{t("errorLoading")}</span>
+            </div>
           </div>
         </div>
       </section>
     );
   }
 
-  if (error) {
+  if (!isLoading && products.length === 0) {
     return (
-      <section className="py-16 bg-offwhite">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold font-montserrat text-center mb-12 text-black">
-            {t("newArrivals")}
-          </h2>
-
-          <div className="flex items-center justify-center py-16">
-            <AlertCircle className="w-8 h-8 text-red-500" />
-            <span className="ml-3 text-red-600">{t("errorLoading")}</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (products.length === 0) {
-    return (
-      <section className="py-16 bg-offwhite">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold font-montserrat text-center mb-12 text-black">
-            {t("newArrivals")}
-          </h2>
-
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">*</div>
-            <p className="text-gray-500 text-xl">
-              {t("noFeaturedProducts")}
-            </p>
+      <section className="bg-[#f6f6f6] py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-[2rem] border border-[#dddddd] bg-white px-6 py-16 text-center shadow-[0_25px_70px_-45px_rgba(0,0,0,0.18)]">
+            <p className="text-xl text-[#5b5b5b]">{t("noFeaturedProducts")}</p>
           </div>
         </div>
       </section>
@@ -77,36 +152,80 @@ export default function FeaturedProducts() {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-12 max-w-3xl text-center">
-          <h2 className="text-3xl font-bold font-montserrat text-black">
-            {t("newArrivals")}
-          </h2>
-        </div>
+    <>
+      {categorySections.map((section, index) => {
+        const categoryProducts = products
+          .filter((product) => product.category === section.key)
+          .slice(0, 4);
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} className="w-full" />
-          ))}
-        </div>
+        if (!isLoading && categoryProducts.length === 0) {
+          return null;
+        }
 
-        <div className="mt-10 flex flex-col items-center gap-4">
-          <p className="text-sm text-gray-600">
-            {t("showingPageResults", {
-              start: visibleStart,
-              end: visibleEnd,
-              total: totalProducts,
-            })}
-          </p>
-          <Link
-            href="/tous-nos-produits"
-            className="inline-flex items-center justify-center rounded-lg bg-black px-8 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-gray-800"
+        return (
+          <section
+            key={section.key}
+            className={`py-16 sm:py-20 ${
+              index % 2 === 0 ? "bg-white" : "bg-[#f5f5f5]"
+            }`}
           >
-            {t("browseFullCatalog")}
-          </Link>
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <SectionHeader
+                eyebrow={section.eyebrow[lang] || section.eyebrow.fr}
+                title={t(section.key)}
+                description={section.description[lang] || section.description.fr}
+                href={section.href}
+                actionLabel={copy.sectionAction}
+                isRTL={isRTL}
+              />
+
+              {isLoading ? (
+                <LoadingGrid count={4} />
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+                  {categoryProducts.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      })}
+
+      <section className="bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow={copy.catalogEyebrow}
+            title={t("tousNosProduits")}
+            description={copy.catalogDescription}
+            href="/tous-nos-produits"
+            actionLabel={copy.catalogAction}
+            isRTL={isRTL}
+          />
+
+          {isLoading ? (
+            <LoadingGrid count={8} />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+
+              <div className={`mt-8 ${isRTL ? "text-right" : "text-left"}`}>
+                <p className="text-sm text-[#6b6b6b]">
+                  {copy.summary(
+                    featuredProducts.length,
+                    pagination?.totalProducts || featuredProducts.length
+                  )}
+                </p>
+              </div>
+            </>
+          )}
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

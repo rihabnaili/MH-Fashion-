@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

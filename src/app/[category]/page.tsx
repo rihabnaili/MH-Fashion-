@@ -6,8 +6,8 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
-import ProductsPagination from '@/app/components/ui/ProductsPagination';
-import { Loader2, AlertCircle } from 'lucide-react';
+import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
+import { AlertCircle } from 'lucide-react';
 
 // Map category slugs to actual category values
 const categorySlugMap: Record<string, string> = {
@@ -31,8 +31,6 @@ const categoryDisplayMap: Record<string, string> = {
   'nouveautes': 'nouveautes'
 };
 
-const PRODUCTS_PER_PAGE = 8;
-
 export default function CategoryPage() {
   const params = useParams();
   const t = useTranslations();
@@ -45,9 +43,9 @@ export default function CategoryPage() {
   const categoryDisplayName = categoryDisplayMap[categorySlug];
 
   // Fetch products for this category
-  const { products, isLoading, error, pagination, goToPage } = useProducts({
+  const { products, isLoading, error, pagination, fetchProducts } = useProducts({
     category: categoryValue,
-    limit: PRODUCTS_PER_PAGE,
+    limit: 12,
     sortBy,
     sortOrder,
     autoFetch: true
@@ -62,21 +60,27 @@ export default function CategoryPage() {
     }
   };
 
-  const totalProducts = pagination?.totalProducts ?? products.length;
-  const currentPage = pagination?.currentPage ?? 1;
-  const currentLimit = pagination?.limit ?? PRODUCTS_PER_PAGE;
-  const visibleStart = totalProducts === 0 ? 0 : (currentPage - 1) * currentLimit + 1;
-  const visibleEnd = totalProducts === 0 ? 0 : Math.min(visibleStart + products.length - 1, totalProducts);
+  const handleLoadMore = () => {
+    if (pagination?.hasNextPage) {
+      fetchProducts(pagination.currentPage + 1);
+    }
+  };
 
   // Loading state
   if (isLoading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
-            <span className="ml-3 text-gray-600">{t("loadingProducts")}</span>
+          <div className="mb-8">
+            <div className="h-10 w-48 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-32 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
+
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#eeeeee]" />
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );
@@ -85,7 +89,7 @@ export default function CategoryPage() {
   // Error state
   if (error && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-16">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -99,7 +103,7 @@ export default function CategoryPage() {
   // Invalid category
   if (!categoryValue) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-16">
             <h1 className="text-3xl font-bold text-black mb-4">Catégorie non trouvée</h1>
@@ -111,7 +115,7 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite pt-32">
+    <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -119,17 +123,8 @@ export default function CategoryPage() {
             {t(categoryDisplayName)}
           </h1>
           <p className="text-gray-600">
-            {totalProducts} {totalProducts > 1 ? t("productsFound") : t("productFound")}
+            {products.length} {products.length > 1 ? t("productsFound") : t("productFound")}
           </p>
-          {totalProducts > 0 && (
-            <p className="mt-2 text-sm text-gray-500">
-              {t('showingPageResults', {
-                start: visibleStart,
-                end: visibleEnd,
-                total: totalProducts,
-              })}
-            </p>
-          )}
         </div>
 
         {/* Controls */}
@@ -168,13 +163,17 @@ export default function CategoryPage() {
               ))}
             </div>
 
-            {pagination && (
-              <ProductsPagination
-                pagination={pagination}
-                currentCount={products.length}
-                onPageChange={goToPage}
-                isLoading={isLoading}
-              />
+            {/* Load more button */}
+            {pagination?.hasNextPage && (
+              <div className="text-center mt-12">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                  className="rounded-lg bg-black px-8 py-3 font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoading ? t("loading") : t("loadMore")}
+                </button>
+              </div>
             )}
           </>
         ) : (

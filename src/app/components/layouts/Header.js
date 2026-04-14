@@ -1,171 +1,242 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Search, Heart, ShoppingCart } from "lucide-react";
-import Logo from "../ui/Logo";
-import { useTranslations } from "@/app/hooks/useTranslations";
-import { useLanguage } from "@/app/context/LanguageContext";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, Search, ShoppingCart, X } from "lucide-react";
+
 import { useCart } from "@/app/context/CartContext";
+import { useLanguage } from "@/app/context/LanguageContext";
+import { useTranslations } from "@/app/hooks/useTranslations";
+
 import LanguageToggle from "../multiLanguage/LanguageToggle";
-import SearchModal from "../ui/SearchModal";
 import CartModal from "../ui/CartModal";
+import Logo from "../ui/Logo";
+
+const navigationItems = [
+  { key: "tousNosProduits", href: "/tous-nos-produits" },
+  { key: "contact", href: "/contact" },
+];
+
+function SearchForm({ query, setQuery, onSubmit, t, isCompact = false }) {
+  return (
+    <form onSubmit={onSubmit} className="w-full">
+      <label
+        className="sr-only"
+        htmlFor={isCompact ? "mobile-header-search" : "header-search"}
+      >
+        {t("search")}
+      </label>
+      <div className="flex items-center rounded-full border border-[#d8d8d8] bg-[#f7f7f7] px-3">
+        <Search className="h-4 w-4 shrink-0 text-[#666666]" />
+        <input
+          id={isCompact ? "mobile-header-search" : "header-search"}
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t("searchPlaceholder")}
+          className={`w-full border-0 bg-transparent text-[#111111] placeholder:text-[#7b7b7b] focus:outline-none focus:ring-0 ${
+            isCompact ? "px-2 py-3 text-sm" : "px-2 py-2.5 text-sm"
+          }`}
+        />
+      </div>
+    </form>
+  );
+}
 
 export default function Header() {
   const t = useTranslations();
-  const { lang } = useLanguage();
+  const { isRTL } = useLanguage();
   const { getTotalItems } = useCart();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const mobileMenuRef = useRef(null);
 
-  // Close mobile menu when clicking outside
+  const cartItemCount = getTotalItems();
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+      if (
+        mobileMenuOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target)
+      ) {
         setMobileMenuOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [mobileMenuOpen]);
 
-  const toggleSidebar = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  useEffect(() => {
+    const activeSearch =
+      pathname === "/tous-nos-produits"
+        ? new URLSearchParams(window.location.search).get("search") || ""
+        : "";
+    setSearchQuery(activeSearch);
+  }, [pathname]);
 
-  const closeSidebar = () => {
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+
+    const trimmedQuery = searchQuery.trim();
+    const target = trimmedQuery
+      ? `/tous-nos-produits?search=${encodeURIComponent(trimmedQuery)}`
+      : "/tous-nos-produits";
+
     setMobileMenuOpen(false);
+    router.push(target);
   };
-
-  const cartItemCount = getTotalItems();
 
   return (
-    <header className="bg-white fixed shadow-sm border-b border-gray-200 w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left side - Mobile menu button + Logo */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2"
-              aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-black" />
-              ) : (
-                <Menu className="w-6 h-6 text-black" />
-              )}
-            </button>
+    <>
+      <header
+        dir={isRTL ? "rtl" : "ltr"}
+        className="fixed inset-x-0 top-0 z-50 border-b border-[#e3e3e3] bg-white"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-3 sm:h-[72px]">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#111111] transition-colors hover:border-black lg:hidden"
+                aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
 
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <Link href="/" aria-label={t("home")}>
+              <Link href="/" aria-label={t("home")} className="shrink-0">
                 <Logo />
               </Link>
             </div>
-          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {[
-              "ensembles",
-              "tShirtsPolos", 
-              "shortsPantalons",
-              "chemises",
-            ].map((key) => (
-              <Link
-                key={key}
-                href={`/${key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}`}
-                className="text-black hover:text-gray-600 text-sm font-medium transition-colors"
-              >
-                {t(key)}
-              </Link>
-            ))}
-          </nav>
+            <div className="hidden flex-1 items-center justify-center gap-6 lg:flex">
+              <div className="w-full max-w-sm xl:max-w-md">
+                <SearchForm
+                  query={searchQuery}
+                  setQuery={setSearchQuery}
+                  onSubmit={handleSearchSubmit}
+                  t={t}
+                />
+              </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="p-1 cursor-pointer"
-              aria-label={t("search")}
-            >
-              <Search
-                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer"
-              />
-            </button>
-            <div className="relative cursor-pointer" onClick={() => setCartOpen(true)}>
-              <ShoppingCart 
-                className="w-5 h-5 text-black hover:text-gray-600 cursor-pointer" 
-              />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                  {cartItemCount}
-                </span>
-              )}
+              <nav className="flex items-center gap-6 text-sm font-medium text-[#3f3f3f] xl:gap-8">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className="whitespace-nowrap transition-colors hover:text-black"
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
+              </nav>
             </div>
-            <LanguageToggle />
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setCartOpen(true)}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#111111] transition-colors hover:border-black"
+                aria-label={t("cart")}
+              >
+                <ShoppingCart className="h-[18px] w-[18px]" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[0.68rem] text-white">
+                    {cartItemCount}
+                  </span>
+                )}
+              </button>
+
+              <div className="hidden lg:flex">
+                <LanguageToggle />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 flex"
+          className="fixed inset-0 z-[60] bg-black/40 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         >
-          {/* Drawer */}
           <div
             ref={mobileMenuRef}
-            className="bg-white w-[280px] h-full shadow-lg transform transition-transform duration-300 ease-in-out"
-            onClick={(e) => e.stopPropagation()}
+            className={`absolute inset-y-0 ${
+              isRTL ? "right-0" : "left-0"
+            } flex h-full w-[88vw] max-w-[340px] flex-col bg-white px-4 pb-5 pt-4 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.35)] sm:px-5`}
+            onClick={(event) => event.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-black">{t("menu")}</h2>
+            <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-4">
+              <Logo />
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d7d7d7] bg-white text-[#111111] transition-colors hover:border-black"
                 aria-label={t("closeMenu")}
               >
-                <X className="w-5 h-5 text-black" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Navigation Links */}
-            <div className="py-4">
-              {[
-                "ensembles",
-                "tShirtsPolos",
-                "shortsPantalons",
-                "chemises",
-                "tousNosProduits",
-              ].map((key) => (
-                <Link
-                  key={key}
-                  href={`/${key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-black hover:bg-gray-100 text-base font-medium py-4 px-6 transition-colors border-b border-gray-100 w-full"
-                >
-                  {t(key)}
-                </Link>
-              ))}
+            <div className="py-5">
+              <SearchForm
+                query={searchQuery}
+                setQuery={setSearchQuery}
+                onSubmit={handleSearchSubmit}
+                t={t}
+                isCompact
+              />
+
+              <div className="mt-5 space-y-3">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-2xl border border-[#e1e1e1] bg-white px-4 py-3 text-base font-medium text-[#111111] transition-colors hover:bg-[#f4f4f4]"
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
+              </div>
             </div>
 
+            <div className="mt-auto space-y-4 border-t border-[#e6e6e6] pt-5">
+              <LanguageToggle
+                align={isRTL ? "right" : "left"}
+                direction="up"
+                buttonClassName="shadow-none"
+              />
+            </div>
           </div>
-          
-          {/* Overlay */}
-          <div className="flex-1 bg-black/20" />
         </div>
       )}
 
-      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <CartModal isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-    </header>
+    </>
   );
 }

@@ -6,10 +6,8 @@ import { useTranslations } from '@/app/hooks/useTranslations';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
-import ProductsPagination from '@/app/components/ui/ProductsPagination';
+import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
 import { Loader2, AlertCircle } from 'lucide-react';
-
-const PRODUCTS_PER_PAGE = 8;
 
 function AllProductsContent() {
   const t = useTranslations();
@@ -29,10 +27,10 @@ function AllProductsContent() {
   }, [searchParams]);
 
   // Fetch all products
-  const { products, isLoading, error, pagination, goToPage } = useProducts({
+  const { products, isLoading, error, pagination, fetchProducts } = useProducts({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     search: searchQuery || undefined,
-    limit: PRODUCTS_PER_PAGE,
+    limit: 12,
     sortBy,
     sortOrder,
     autoFetch: true
@@ -55,6 +53,12 @@ function AllProductsContent() {
     setSearchQuery(query);
   };
 
+  const handleLoadMore = () => {
+    if (pagination?.hasNextPage) {
+      fetchProducts(pagination.currentPage + 1);
+    }
+  };
+
   const categories = [
     { value: 'all', label: t("allCategories") },
     { value: 'ensembles', label: t("ensembles") },
@@ -66,21 +70,28 @@ function AllProductsContent() {
     { value: 'nouveautes', label: t("nouveautes") }
   ];
 
-  const totalProducts = pagination?.totalProducts ?? products.length;
-  const currentPage = pagination?.currentPage ?? 1;
-  const currentLimit = pagination?.limit ?? PRODUCTS_PER_PAGE;
-  const visibleStart = totalProducts === 0 ? 0 : (currentPage - 1) * currentLimit + 1;
-  const visibleEnd = totalProducts === 0 ? 0 : Math.min(visibleStart + products.length - 1, totalProducts);
-
   // Loading state
   if (isLoading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
-            <span className="ml-3 text-gray-600">{t("loadingProducts")}</span>
+          <div className="mb-8">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#e3e3e3]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#eeeeee]" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );
@@ -89,7 +100,7 @@ function AllProductsContent() {
   // Error state
   if (error && products.length === 0) {
     return (
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-16">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -101,7 +112,7 @@ function AllProductsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-offwhite pt-32">
+    <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -109,19 +120,10 @@ function AllProductsContent() {
             {t("tousNosProduits")}
           </h1>
           <p className="text-gray-600">
-            {totalProducts} {totalProducts > 1 ? t("productsFound") : t("productFound")}
+            {products.length} {products.length > 1 ? t("productsFound") : t("productFound")}
             {searchQuery && ` ${t("for")} "${searchQuery}"`}
             {selectedCategory !== 'all' && ` ${t("in")} ${categories.find(c => c.value === selectedCategory)?.label}`}
           </p>
-          {totalProducts > 0 && (
-            <p className="mt-2 text-sm text-gray-500">
-              {t('showingPageResults', {
-                start: visibleStart,
-                end: visibleEnd,
-                total: totalProducts,
-              })}
-            </p>
-          )}
         </div>
 
         {/* Filters and Controls */}
@@ -196,13 +198,17 @@ function AllProductsContent() {
               ))}
             </div>
 
-            {pagination && (
-              <ProductsPagination
-                pagination={pagination}
-                currentCount={products.length}
-                onPageChange={goToPage}
-                isLoading={isLoading}
-              />
+            {/* Load more button */}
+            {pagination?.hasNextPage && (
+              <div className="text-center mt-12">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                  className="rounded-lg bg-black px-8 py-3 font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoading ? t("loading") : t("loadMore")}
+                </button>
+              </div>
             )}
           </>
         ) : (
@@ -227,11 +233,25 @@ function AllProductsContent() {
 export default function AllProductsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-offwhite pt-32">
+      <div className="min-h-screen bg-[#f6f6f6] pt-24 sm:pt-28 lg:pt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-black animate-spin" />
+          <div className="mb-8">
+            <div className="h-10 w-64 animate-pulse rounded bg-[#e3e3e3]" />
+            <div className="mt-4 h-5 w-48 animate-pulse rounded bg-[#e3e3e3]" />
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-[#e3e3e3]" />
+                  <div className="h-11 w-full animate-pulse rounded-lg bg-[#eeeeee]" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     }>
