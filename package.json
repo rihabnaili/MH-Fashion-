@@ -2,6 +2,9 @@
   "name": "apex-front",
   "version": "6.2.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "clean": "rimraf -g \"{node_modules,.next,.cache}\"",
     "dev": "next dev",
