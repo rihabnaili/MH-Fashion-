@@ -11,8 +11,7 @@ const usefulLinks = [
   { key: "promos", href: "/promos" },
 ];
 
-    <footer className="border-t border-[#dddddd] bg-[#f3f3f3] py-14 font-text">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+const categoryLinks = [
   { key: "ensembles", href: "/ensembles" },
   { key: "tShirtsPolos", href: "/t-shirts-polos" },
   { key: "shortsPantalons", href: "/shorts-pantalons" },
