@@ -10,6 +10,7 @@ export interface IProduct extends Document {
   originalPrice?: number;
   size: string[];
   color: string[];
+  disabledColors?: string[];
   discount: number;
   category: string;
   availability: boolean;
@@ -45,6 +46,10 @@ const ProductSchema: Schema = new Schema({
   color: [{ 
     type: String, 
     required: true,
+    trim: true
+  }],
+  disabledColors: [{
+    type: String,
     trim: true
   }],
   discount: { 

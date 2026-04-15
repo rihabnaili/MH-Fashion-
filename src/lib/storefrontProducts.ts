@@ -14,6 +14,7 @@ export interface StorefrontProduct {
   originalPrice?: number;
   size: string[];
   color: string[];
+  disabledColors?: string[];
   discount: number;
   category: string;
   availability: boolean;
@@ -33,6 +34,7 @@ const storefrontProductProjection = {
   originalPrice: 1,
   size: 1,
   color: 1,
+  disabledColors: 1,
   discount: 1,
   category: 1,
   availability: 1,

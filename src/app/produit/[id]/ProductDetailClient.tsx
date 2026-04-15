@@ -33,6 +33,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const requiresSize = product.size.length > 0;
   const requiresColor = product.color.length > 0;
   const availableSizes = new Set(product.size);
+  const disabledColors = new Set(product.disabledColors || []);
   const variantHint =
     lang === 'ar'
       ? 'يمكنك إضافة نفس المنتج بمقاسات أو ألوان مختلفة ثم إنهاء الطلب من السلة الجانبية.'
@@ -50,7 +51,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     setSelectionError('');
     setConfirmationMessage('');
 
-    if ((requiresSize && !selectedSize) || (requiresColor && !selectedColor)) {
+    if (
+      (requiresSize && !selectedSize) ||
+      (requiresColor && (!selectedColor || disabledColors.has(selectedColor)))
+    ) {
       setSelectionError(t('pleaseSelectSizeAndColor'));
       return;
     }
@@ -133,20 +137,33 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">{t('color')}</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {product.color.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={`rounded-lg border px-4 py-2 text-sm ${
-                        selectedColor === color
-                          ? 'border-black bg-black text-white'
-                          : 'border-gray-300 text-[#111111] hover:border-black'
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+                  {product.color.map((color) => {
+                    const isDisabled = disabledColors.has(color);
+                    const isSelected = selectedColor === color;
+
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          if (!isDisabled) {
+                            setSelectedColor(color);
+                          }
+                        }}
+                        disabled={isDisabled}
+                        aria-disabled={isDisabled}
+                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+                          isSelected
+                            ? 'border-black bg-black text-white'
+                            : isDisabled
+                              ? 'cursor-not-allowed border-[#e5e5e5] bg-[#f3f3f3] text-[#a5a5a5]'
+                              : 'border-gray-300 text-[#111111] hover:border-black'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

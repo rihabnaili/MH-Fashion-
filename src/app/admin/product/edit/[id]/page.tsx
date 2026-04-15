@@ -18,6 +18,7 @@ interface ProductFormData {
   originalPrice: string;
   size: string[];
   color: string[];
+  disabledColors: string[];
   discount: string;
   category: string;
   availability: boolean;
@@ -37,6 +38,7 @@ interface Product {
   originalPrice?: number;
   size: string[];
   color: string[];
+  disabledColors?: string[];
   discount: number;
   category: string;
   availability: boolean;
@@ -76,6 +78,7 @@ export default function EditProductForm() {
     originalPrice: '',
     size: [],
     color: [],
+    disabledColors: [],
     discount: '0',
     category: '',
     availability: true,
@@ -100,6 +103,7 @@ export default function EditProductForm() {
           originalPrice: productData.originalPrice?.toString() || '',
           size: productData.size,
           color: productData.color,
+          disabledColors: productData.disabledColors || [],
           discount: productData.discount.toString(),
           category: productData.category,
           availability: productData.availability,
@@ -157,6 +161,15 @@ export default function EditProductForm() {
     }));
   };
 
+  const toggleColorDisabled = (color: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      disabledColors: prev.disabledColors.includes(color)
+        ? prev.disabledColors.filter((entry) => entry !== color)
+        : [...prev.disabledColors, color],
+    }));
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newImages = Array.from(e.target.files);
@@ -210,6 +223,7 @@ export default function EditProductForm() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         size: filteredSizes,
         color: filteredColors,
+        disabledColors: formData.disabledColors.filter((color) => filteredColors.includes(color)),
         discount: parseFloat(formData.discount),
         category: formData.category,
         availability: formData.availability,
@@ -376,31 +390,63 @@ export default function EditProductForm() {
                   {t("availableColors")} *
                 </label>
                 <div className="space-y-3">
-                  {formData.color.map((color, index) => (
+                  {formData.color.map((color, index) => {
+                    const isDisabled = formData.disabledColors.includes(color);
+
+                    return (
                     <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                       <input
                         type="text"
                         value={color}
                         onChange={(e) => {
+                          const previousColor = formData.color[index];
                           const newColors = [...formData.color];
                           newColors[index] = e.target.value;
-                          setFormData(prev => ({ ...prev, color: newColors }));
+                          setFormData(prev => ({
+                            ...prev,
+                            color: newColors,
+                            disabledColors: prev.disabledColors.map((entry) =>
+                              entry === previousColor ? e.target.value : entry
+                            ),
+                          }));
                         }}
                         className="w-full sm:flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                         placeholder={t("colorName")}
                       />
                       <button
                         type="button"
+                        onClick={() => toggleColorDisabled(color)}
+                        className={`w-full sm:w-auto px-4 py-2 sm:py-3 rounded-lg transition-colors duration-200 font-medium text-sm sm:text-base ${
+                          isDisabled
+                            ? 'bg-gray-700 text-white hover:bg-gray-800'
+                            : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+                        }`}
+                      >
+                        {isDisabled
+                          ? lang === 'ar'
+                            ? 'تفعيل'
+                            : 'Activer'
+                          : lang === 'ar'
+                            ? 'تعطيل'
+                            : 'Desactiver'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => {
                           const newColors = formData.color.filter((_, i) => i !== index);
-                          setFormData(prev => ({ ...prev, color: newColors }));
+                          setFormData(prev => ({
+                            ...prev,
+                            color: newColors,
+                            disabledColors: prev.disabledColors.filter((entry) => entry !== color),
+                          }));
                         }}
                         className="w-full sm:w-auto px-4 py-2 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 font-medium text-sm sm:text-base"
                       >
                         {t("delete")}
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, color: [...prev.color, ''] }))}

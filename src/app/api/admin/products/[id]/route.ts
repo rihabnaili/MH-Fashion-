@@ -47,6 +47,7 @@ export async function GET(
           originalPrice: 1,
           size: 1,
           color: 1,
+          disabledColors: 1,
           discount: 1,
           category: 1,
           availability: 1,
@@ -138,6 +139,18 @@ export async function PUT(
 
     if (Array.isArray(updateData.color)) {
       updateData.color = updateData.color.filter((color: string) => color && color.trim() !== '');
+    }
+
+    if (Array.isArray(updateData.disabledColors)) {
+      updateData.disabledColors = updateData.disabledColors.filter(
+        (color: string) =>
+          color &&
+          color.trim() !== '' &&
+          Array.isArray(updateData.color) &&
+          updateData.color.includes(color)
+      );
+    } else {
+      updateData.disabledColors = [];
     }
 
     if (Array.isArray(updateData.size)) {
