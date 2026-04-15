@@ -473,7 +473,13 @@ export default function EditProductForm() {
                               : 'bg-amber-500 text-white hover:bg-amber-600'
                           }`}
                         >
-                          {isDisabled ? 'Activer' : 'Desactiver'}
+                          {isDisabled
+                            ? lang === 'ar'
+                              ? 'تفعيل'
+                              : 'Activer'
+                            : lang === 'ar'
+                              ? 'تعطيل'
+                              : 'Desactiver'}
                         </button>
                         <button
                           type="button"

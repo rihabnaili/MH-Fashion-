@@ -3,6 +3,7 @@ import { Cinzel, Montserrat, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import MainLayout from "./components/layouts/MainLayout";
 import { LanguageProvider } from "./context/LanguageContext";
+import { CartProvider } from "./context/CartContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -65,7 +66,9 @@ export default function RootLayout({
         className={`${montserrat.variable} ${cinzel.variable} ${notoSansArabic.variable}`}
       >
         <LanguageProvider>
-          <MainLayout>{children}</MainLayout>
+          <CartProvider>
+            <MainLayout>{children}</MainLayout>
+          </CartProvider>
         </LanguageProvider>
       </body>
     </html>

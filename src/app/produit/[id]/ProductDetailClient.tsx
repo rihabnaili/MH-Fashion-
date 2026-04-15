@@ -1,43 +1,44 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { CheckCircle2, MapPin, Minus, Phone, Plus, User } from 'lucide-react';
+import { Minus, Plus, ShoppingBag } from 'lucide-react';
 
 import ProductImageGallery from '@/app/components/ui/ProductImageGallery';
+import { useCart } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 import type { StorefrontProduct } from '@/lib/storefrontProducts';
 
 interface ProductDetailClientProps {
   product: StorefrontProduct;
 }
 
+const DELIVERY_FEE = 8;
+
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { lang } = useLanguage();
+  const { addToCart, openCart } = useCart();
   const t = useTranslations();
 
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [customerName, setCustomerName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [orderNumber, setOrderNumber] = useState('');
-  const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [selectionError, setSelectionError] = useState('');
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const productName = product.name[lang as keyof typeof product.name] || product.name.fr;
   const productDescription =
     product.description?.[lang as keyof typeof product.description] || product.description?.fr;
   const requiresSize = product.size.length > 0;
   const requiresColor = product.color.length > 0;
-  const totalAmount = product.price * quantity;
-  const totalDiscount =
-    product.originalPrice && product.originalPrice > product.price
-      ? (product.originalPrice - product.price) * quantity
-      : 0;
+  const availableSizes = new Set(product.size);
+  const disabledColors = new Set(product.disabledColors || []);
+  const variantHint =
+    lang === 'ar'
+      ? 'يمكنك إضافة نفس المنتج بمقاسات أو ألوان مختلفة ثم إنهاء الطلب من السلة الجانبية.'
+      : 'Vous pouvez ajouter le meme produit en plusieurs tailles ou couleurs puis finaliser depuis le panier lateral.';
+  const openCartLabel = lang === 'ar' ? 'فتح السلة' : 'Ouvrir le panier';
 
   const handleQuantityChange = (increment: boolean) => {
     setQuantity((previousQuantity) => {
@@ -46,110 +47,26 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     });
   };
 
-  const handleSubmitOrder = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitError('');
+  const handleAddToCart = () => {
+    setSelectionError('');
+    setConfirmationMessage('');
 
-    if ((requiresSize && !selectedSize) || (requiresColor && !selectedColor)) {
-      setSubmitError(t('pleaseSelectSizeAndColor'));
+    if (
+      (requiresSize && !selectedSize) ||
+      (requiresColor && (!selectedColor || disabledColors.has(selectedColor)))
+    ) {
+      setSelectionError(t('pleaseSelectSizeAndColor'));
       return;
     }
 
-    const trimmedPhone = phoneNumber.trim();
-    if (!trimmedPhone || !/^\+?[0-9\s]+$/.test(trimmedPhone)) {
-      setSubmitError(t('pleaseEnterPhone'));
-      return;
-    }
+    addToCart(product, selectedSize, selectedColor, quantity);
 
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customer: {
-            name: customerName.trim() || t('client'),
-            phone: trimmedPhone,
-            address: deliveryAddress.trim(),
-          },
-          items: [
-            {
-              productId: product._id,
-              productName: product.name,
-              price: product.price,
-              originalPrice: product.originalPrice,
-              size: selectedSize || '-',
-              color: selectedColor || '-',
-              quantity,
-              images: product.images,
-            },
-          ],
-          totalAmount,
-          totalDiscount,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to create order');
-      }
-
-      setOrderNumber(result.data.orderNumber);
-      setOrderSubmitted(true);
-    } catch (error) {
-      console.error('Error creating direct order:', error);
-      setSubmitError(
-        `${t('errorSubmission')}: ${
-          error instanceof Error ? error.message : t('errorUnknown')
-        }`
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    const confirmation =
+      lang === 'ar'
+        ? 'تمت إضافة هذا الخيار إلى السلة. يمكنك الآن تغيير اللون أو المقاس وإضافة خيار آخر قبل فتح السلة.'
+        : 'Cette variante a ete ajoutee au panier. Vous pouvez maintenant changer la taille ou la couleur et ajouter une autre variante avant d ouvrir le panier.';
+    setConfirmationMessage(confirmation);
   };
-
-  if (orderSubmitted) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto flex max-w-3xl px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 lg:px-8 lg:pt-36">
-          <div className="w-full rounded-[2rem] border border-[#e8e8e8] bg-[#fafafa] p-8 text-center shadow-[0_25px_70px_-45px_rgba(0,0,0,0.18)] sm:p-10">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-black text-white">
-              <CheckCircle2 className="h-8 w-8" />
-            </div>
-
-            <h1 className="mt-6 text-3xl font-bold text-[#111111]">{t('orderConfirmed')}</h1>
-            <p className="mt-3 text-base text-[#555555]">{t('orderSuccessMessage')}</p>
-
-            <div className="mt-6 rounded-3xl border border-[#e0e0e0] bg-white px-5 py-4">
-              <p className="text-sm uppercase tracking-[0.18em] text-[#777777]">
-                {t('orderNumber')}
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-[#111111]">{orderNumber}</p>
-            </div>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href="/tous-nos-produits"
-                className="inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
-              >
-                {t('tousNosProduits')}
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center rounded-full border border-[#d7d7d7] bg-white px-6 py-3 text-sm font-semibold text-[#111111] transition-colors hover:border-black"
-              >
-                {t('contact')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -176,26 +93,42 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </span>
                 )}
               </div>
+              <p className="text-sm text-gray-600">
+                +{DELIVERY_FEE} {t('dt')} {t('deliveryFees')}
+              </p>
             </div>
 
             {requiresSize && (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">{t('size')}</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {product.size.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`rounded-lg border px-4 py-2 text-sm ${
-                        selectedSize === size
-                          ? 'border-black bg-black text-white'
-                          : 'border-gray-300 text-[#111111] hover:border-black'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {PRODUCT_SIZES.map((size) => {
+                    const isAvailable = availableSizes.has(size);
+                    const isSelected = selectedSize === size;
+
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          if (isAvailable) {
+                            setSelectedSize(size);
+                          }
+                        }}
+                        disabled={!isAvailable}
+                        aria-disabled={!isAvailable}
+                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+                          isSelected
+                            ? 'border-black bg-black text-white'
+                            : isAvailable
+                              ? 'border-gray-300 text-[#111111] hover:border-black'
+                              : 'cursor-not-allowed border-[#e5e5e5] bg-[#f3f3f3] text-[#a5a5a5]'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -204,20 +137,33 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">{t('color')}</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {product.color.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={`rounded-lg border px-4 py-2 text-sm ${
-                        selectedColor === color
-                          ? 'border-black bg-black text-white'
-                          : 'border-gray-300 text-[#111111] hover:border-black'
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+                  {product.color.map((color) => {
+                    const isDisabled = disabledColors.has(color);
+                    const isSelected = selectedColor === color;
+
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          if (!isDisabled) {
+                            setSelectedColor(color);
+                          }
+                        }}
+                        disabled={isDisabled}
+                        aria-disabled={isDisabled}
+                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+                          isSelected
+                            ? 'border-black bg-black text-white'
+                            : isDisabled
+                              ? 'cursor-not-allowed border-[#e5e5e5] bg-[#f3f3f3] text-[#a5a5a5]'
+                              : 'border-gray-300 text-[#111111] hover:border-black'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -244,95 +190,65 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
             </div>
 
-            <form
-              onSubmit={handleSubmitOrder}
-              className="space-y-4 rounded-[1.75rem] border border-[#e6e6e6] bg-[#fafafa] p-4 sm:p-5"
-            >
+            <div className="space-y-4 rounded-[1.75rem] border border-[#e6e6e6] bg-[#fafafa] p-4 sm:p-5">
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-[#111111]">{t('confirmOrder')}</h2>
-                <p className="text-sm text-[#666666]">
-                  {quantity} x {productName}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  <User className="mr-2 inline h-4 w-4" />
-                  {t('fullName')}
-                </label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(event) => setCustomerName(event.target.value)}
-                  placeholder={t('yourFullName')}
-                  className="w-full rounded-2xl border border-[#d7d7d7] bg-white px-4 py-3 text-sm text-[#111111] placeholder:text-[#8a8a8a] focus:border-black focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  <Phone className="mr-2 inline h-4 w-4" />
-                  {t('phone')}
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  placeholder={t('phoneNumber')}
-                  className="w-full rounded-2xl border border-[#d7d7d7] bg-white px-4 py-3 text-sm text-[#111111] placeholder:text-[#8a8a8a] focus:border-black focus:outline-none"
-                  inputMode="tel"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  <MapPin className="mr-2 inline h-4 w-4" />
-                  {t('deliveryAddress')}
-                </label>
-                <textarea
-                  value={deliveryAddress}
-                  onChange={(event) => setDeliveryAddress(event.target.value)}
-                  placeholder={t('yourAddress')}
-                  rows={3}
-                  className="w-full rounded-2xl border border-[#d7d7d7] bg-white px-4 py-3 text-sm text-[#111111] placeholder:text-[#8a8a8a] focus:border-black focus:outline-none"
-                />
+                <h2 className="text-lg font-semibold text-[#111111]">{t('cart')}</h2>
+                <p className="text-sm text-[#666666]">{variantHint}</p>
               </div>
 
               <div className="rounded-2xl border border-[#e3e3e3] bg-white px-4 py-3">
-                {totalDiscount > 0 && (
-                  <div className="text-sm text-[#666666]">
-                    <span>
-                      -{totalDiscount.toFixed(2)} {t('dt')}
-                    </span>
-                  </div>
-                )}
-                <div className="mt-2 flex items-center justify-between text-lg font-semibold text-[#111111]">
+                <div className="flex items-center justify-between text-sm text-[#666666]">
+                  <span>{t('price')}</span>
+                  <span>
+                    {(product.price * quantity).toFixed(2)} {t('dt')}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-sm text-[#666666]">
+                  <span>{t('deliveryFees')}</span>
+                  <span>
+                    +{DELIVERY_FEE.toFixed(2)} {t('dt')}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-[#dfdfdf] pt-3 text-base font-semibold text-[#111111]">
                   <span>{t('total')}</span>
                   <span>
-                    {totalAmount.toFixed(2)} {t('dt')}
+                    {(product.price * quantity + DELIVERY_FEE).toFixed(2)} {t('dt')}
                   </span>
                 </div>
               </div>
 
-              {submitError && (
+              {selectionError && (
                 <div className="rounded-2xl border border-[#e3c5c5] bg-[#fff5f5] px-4 py-3 text-sm text-[#8f2a2a]">
-                  {submitError}
+                  {selectionError}
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={
-                  isSubmitting ||
-                  (requiresSize && !selectedSize) ||
-                  (requiresColor && !selectedColor)
-                }
-                className="flex w-full items-center justify-center rounded-full bg-black py-4 text-sm font-semibold text-white transition-colors hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubmitting ? t('processing') : t('confirmOrder')}
-              </button>
-            </form>
+              {confirmationMessage && (
+                <div className="rounded-2xl border border-[#d7e5d1] bg-[#f5fbf2] px-4 py-3 text-sm text-[#34572b]">
+                  {confirmationMessage}
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>{t('addToCart')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={openCart}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[#d7d7d7] bg-white py-4 text-sm font-semibold text-[#111111] transition-colors hover:border-black"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>{openCartLabel}</span>
+                </button>
+              </div>
+            </div>
 
             {productDescription && (
               <div className="border-t border-gray-200 pt-6">

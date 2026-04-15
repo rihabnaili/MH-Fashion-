@@ -29,11 +29,14 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  isCartOpen: boolean;
   addToCart: (product: any, size?: string, color?: string, quantity?: number) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   updateItemSizeColor: (cartItemId: string, newSize: string, newColor: string) => void;
   clearCart: () => void;
+  openCart: () => void;
+  closeCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getTotalDiscount: () => number;
@@ -171,6 +174,7 @@ const buildCartItem = (product: any, size: string, color: string, quantity: numb
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -352,6 +356,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   };
 
+  const openCart = () => {
+    setIsCartOpen(true);
+  };
+
+  const closeCart = () => {
+    setIsCartOpen(false);
+  };
+
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0);
   };
@@ -372,11 +384,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return (
     <CartContext.Provider value={{
       items,
+      isCartOpen,
       addToCart,
       removeFromCart,
       updateQuantity,
       updateItemSizeColor,
       clearCart,
+      openCart,
+      closeCart,
       getTotalItems,
       getTotalPrice,
       getTotalDiscount

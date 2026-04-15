@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
     if (product.color && Array.isArray(product.color)) {
       product.color = product.color.filter((c: string) => c && c.trim() !== '');
     }
+    if (product.disabledColors && Array.isArray(product.disabledColors)) {
+      product.disabledColors = product.disabledColors.filter(
+        (color: string) => color && product.color?.includes(color)
+      );
+    } else {
+      product.disabledColors = [];
+    }
     if (product.size && Array.isArray(product.size)) {
       product.size = product.size.filter((s: string) => s && s.trim() !== '');
     }
