@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { PRODUCT_SIZES } from '@/lib/productOptions';
 
 export interface IProduct extends Document {
   name: {
@@ -39,7 +40,7 @@ const ProductSchema: Schema = new Schema({
   size: [{ 
     type: String, 
     required: true,
-    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+    enum: PRODUCT_SIZES
   }],
   color: [{ 
     type: String, 

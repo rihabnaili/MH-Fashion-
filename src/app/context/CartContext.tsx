@@ -26,11 +26,14 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  isCartOpen: boolean;
   addToCart: (product: any, size?: string, color?: string, quantity?: number) => void;
   removeFromCart: (itemId: string, size: string, color: string) => void;
   updateQuantity: (itemId: string, size: string, color: string, quantity: number) => void;
   updateItemSizeColor: (itemId: string, oldSize: string, oldColor: string, newSize: string, newColor: string) => void;
   clearCart: () => void;
+  openCart: () => void;
+  closeCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getTotalDiscount: () => number;
@@ -40,6 +43,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -60,21 +64,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (product: any, size: string = '', color: string = '', quantity: number = 1) => {
     setItems(prevItems => {
-      // If size and color are provided, check if item already exists with same size and color
-      if (size && color) {
-        const existingItemIndex = prevItems.findIndex(
-          item => item._id === product._id && item.size === size && item.color === color
-        );
+      const existingItemIndex = prevItems.findIndex(
+        item => item._id === product._id && item.size === size && item.color === color
+      );
 
-        if (existingItemIndex > -1) {
-          // Update quantity of existing item
-          const updatedItems = [...prevItems];
-          updatedItems[existingItemIndex].quantity += quantity;
-          return updatedItems;
-        }
+      if (existingItemIndex > -1) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += quantity;
+        return updatedItems;
       }
       
-      // Add new item (either new variant or item without size/color)
       const newItem: CartItem = {
         _id: product._id,
         name: product.name,
@@ -159,6 +158,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   };
 
+  const openCart = () => {
+    setIsCartOpen(true);
+  };
+
+  const closeCart = () => {
+    setIsCartOpen(false);
+  };
+
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0);
   };
@@ -179,11 +186,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return (
     <CartContext.Provider value={{
       items,
+      isCartOpen,
       addToCart,
       removeFromCart,
       updateQuantity,
       updateItemSizeColor,
       clearCart,
+      openCart,
+      closeCart,
       getTotalItems,
       getTotalPrice,
       getTotalDiscount
