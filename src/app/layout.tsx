@@ -3,7 +3,7 @@ import { Cinzel, Montserrat, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import MainLayout from "./components/layouts/MainLayout";
 import { LanguageProvider } from "./context/LanguageContext";
-import { CartProvider } from "./context/CartContext";
+import { CartProvider } from "./context/CartContext"; 
 
 const montserrat = Montserrat({
   subsets: ["latin"],
