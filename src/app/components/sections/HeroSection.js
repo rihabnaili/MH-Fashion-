@@ -13,7 +13,7 @@ export default function HeroSection() {
           fill
           priority
           sizes="100vw"
-          className="bg-black object-contain object-center scale-[1.08] sm:scale-[1.1] lg:scale-[1.12]"
+          className="bg-black object-contain object-center scale-[1.18] sm:scale-[1.28] lg:scale-[1.38]"
         />
       </div>
     </section>
