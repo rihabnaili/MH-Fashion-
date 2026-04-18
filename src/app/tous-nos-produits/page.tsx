@@ -7,11 +7,11 @@ import { useLanguage } from '@/app/context/LanguageContext';
 import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
 import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
 function AllProductsContent() {
   const t = useTranslations();
-  const { lang } = useLanguage();
+  const { lang, isRTL } = useLanguage();
   const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -27,7 +27,7 @@ function AllProductsContent() {
   }, [searchParams]);
 
   // Fetch all products
-  const { products, isLoading, error, pagination, fetchProducts } = useProducts({
+  const { products, isLoading, error, pagination, goToPage } = useProducts({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     search: searchQuery || undefined,
     limit: 12,
@@ -35,15 +35,6 @@ function AllProductsContent() {
     sortOrder,
     autoFetch: true
   });
-
-  const handleSortChange = (newSortBy: string) => {
-    if (sortBy === newSortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSortBy);
-      setSortOrder('desc');
-    }
-  };
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
@@ -53,11 +44,14 @@ function AllProductsContent() {
     setSearchQuery(query);
   };
 
-  const handleLoadMore = () => {
-    if (pagination?.hasNextPage) {
-      fetchProducts(pagination.currentPage + 1);
-    }
-  };
+  const totalProducts = pagination?.totalProducts ?? products.length;
+  const currentPage = pagination?.currentPage ?? 1;
+  const totalPages = pagination?.totalPages ?? 1;
+  const previousPageLabel = t('previousPage');
+  const nextPageLabel = t('nextPage');
+  const pageStatusLabel = `${t('page')} ${currentPage} ${t('of')} ${totalPages}`;
+  const PreviousIcon = isRTL ? ArrowRight : ArrowLeft;
+  const NextIcon = isRTL ? ArrowLeft : ArrowRight;
 
   const categories = [
     { value: 'all', label: t("allCategories") },
@@ -120,7 +114,7 @@ function AllProductsContent() {
             {t("tousNosProduits")}
           </h1>
           <p className="text-gray-600">
-            {products.length} {products.length > 1 ? t("productsFound") : t("productFound")}
+            {totalProducts} {totalProducts > 1 ? t("productsFound") : t("productFound")}
             {searchQuery && ` ${t("for")} "${searchQuery}"`}
             {selectedCategory !== 'all' && ` ${t("in")} ${categories.find(c => c.value === selectedCategory)?.label}`}
           </p>
@@ -198,15 +192,33 @@ function AllProductsContent() {
               ))}
             </div>
 
-            {/* Load more button */}
-            {pagination?.hasNextPage && (
-              <div className="text-center mt-12">
+            {/* Pagination */}
+            {pagination && totalPages > 1 && (
+              <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                 <button
-                  onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="rounded-lg bg-black px-8 py-3 font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-50"
+                  type="button"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={!pagination.hasPrevPage || isLoading}
+                  className="inline-flex min-w-[154px] items-center justify-center gap-2 rounded-full border border-[#d7d7d7] bg-white px-5 py-3 text-sm font-medium text-[#111111] shadow-sm transition-colors duration-200 hover:border-black hover:bg-[#f4f4f4] disabled:cursor-not-allowed disabled:opacity-45"
+                  aria-label={previousPageLabel}
                 >
-                  {isLoading ? t("loading") : t("loadMore")}
+                  <PreviousIcon className="h-4 w-4" />
+                  <span>{previousPageLabel}</span>
+                </button>
+
+                <div className="inline-flex min-w-[170px] items-center justify-center rounded-full border border-[#e4e4e4] bg-white px-5 py-3 text-sm font-semibold text-[#111111] shadow-sm">
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : pageStatusLabel}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={!pagination.hasNextPage || isLoading}
+                  className="inline-flex min-w-[154px] items-center justify-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-medium text-white shadow-md transition-colors duration-200 hover:bg-[#222222] disabled:cursor-not-allowed disabled:opacity-45"
+                  aria-label={nextPageLabel}
+                >
+                  <span>{nextPageLabel}</span>
+                  <NextIcon className="h-4 w-4" />
                 </button>
               </div>
             )}
