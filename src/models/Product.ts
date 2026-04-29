@@ -1,11 +1,13 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { PRODUCT_SIZES } from '@/lib/productOptions';
+import { slugifyProductName } from '@/lib/productRoutes';
 
 export interface IProduct extends Document {
   name: {
     fr: string;
     ar: string;
   };
+  slug?: string;
   price: number;
   originalPrice?: number;
   size: string[];
@@ -28,6 +30,11 @@ const ProductSchema: Schema = new Schema({
   name: {
     fr: { type: String, required: true, trim: true },
     ar: { type: String, required: true, trim: true }
+  },
+  slug: {
+    type: String,
+    trim: true,
+    lowercase: true,
   },
   price: { 
     type: Number, 
@@ -91,6 +98,15 @@ ProductSchema.index({
   category: 1,
   availability: 1,
   price: 1
+});
+ProductSchema.index({ category: 1, slug: 1 });
+
+ProductSchema.pre('validate', function(this: any, next: () => void) {
+  if (!this.slug || this.isModified('name.fr')) {
+    this.slug = slugifyProductName(this.name?.fr || this.name?.ar || this._id);
+  }
+
+  next();
 });
 
 // Virtual for discount percentage

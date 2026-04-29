@@ -1,10 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getProductSlug } from '@/lib/productRoutes';
 
 export interface CartItem {
   cartItemId: string;
   _id: string;
+  slug: string;
   name: {
     fr: string;
     ar: string;
@@ -132,6 +134,10 @@ const normalizeCartItem = (value: unknown): CartItem | null => {
         ? rawItem.cartItemId
         : createCartItemId(),
     _id: productId,
+    slug:
+      typeof rawItem.slug === 'string' && rawItem.slug
+        ? getProductSlug({ slug: rawItem.slug })
+        : getProductSlug({ _id: productId, name: normalizeLocalizedText(rawItem.name) }),
     name: normalizeLocalizedText(rawItem.name),
     price: typeof rawItem.price === 'number' ? rawItem.price : 0,
     originalPrice: typeof rawItem.originalPrice === 'number' ? rawItem.originalPrice : undefined,
@@ -155,6 +161,7 @@ const buildCartItem = (product: any, size: string, color: string, quantity: numb
   return {
     cartItemId: cartItemId ?? createCartItemId(),
     _id: product._id,
+    slug: getProductSlug(product),
     name: normalizeLocalizedText(product.name),
     price: typeof product.price === 'number' ? product.price : 0,
     originalPrice: typeof product.originalPrice === 'number' ? product.originalPrice : undefined,
@@ -256,6 +263,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               discount: typeof product.discount === 'number' ? product.discount : item.discount,
               images: refreshedImages.length > 0 ? refreshedImages : item.images,
               category: typeof product.category === 'string' ? product.category : item.category,
+              slug: getProductSlug(product),
               size: item.size && refreshedAvailableSizes.includes(item.size) ? item.size : '',
               color: item.color,
               availableSizes: refreshedAvailableSizes,

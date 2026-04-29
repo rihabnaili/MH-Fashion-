@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
-import { normalizeProductImages } from '@/lib/productImageUrls';
-import { storefrontProductProjection } from '@/lib/storefrontProducts';
+import { normalizeStorefrontProduct, storefrontProductProjection } from '@/lib/storefrontProducts';
 
 // GET products for frontend display
 export async function GET(request: NextRequest) {
@@ -54,7 +53,7 @@ export async function GET(request: NextRequest) {
     ]);
     
     const productsWithImageUrls = products.map((product: any) => {
-      const normalizedProduct = normalizeProductImages(product);
+      const normalizedProduct = normalizeStorefrontProduct(product);
 
       return {
         ...normalizedProduct,

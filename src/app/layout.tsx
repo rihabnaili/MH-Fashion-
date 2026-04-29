@@ -4,6 +4,7 @@ import "./globals.css";
 import MainLayout from "./components/layouts/MainLayout";
 import { LanguageProvider } from "./context/LanguageContext";
 import { CartProvider } from "./context/CartContext"; 
+import { SITE_URL } from "@/lib/productRoutes";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,12 +27,15 @@ const notoSansArabic = Noto_Sans_Arabic({
 export const metadata: Metadata = {
   title: "MH Fashion",
   description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
-  metadataBase: new URL("https://www.mhfashion.tn"),
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
 
   openGraph: {
     title: "MH Fashion",
     description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
-    url: "https://www.mhfashion.tn",
+    url: SITE_URL,
     siteName: "MH Fashion",
     images: [
       {
@@ -42,6 +46,13 @@ export const metadata: Metadata = {
       },
     ],
     type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "MH Fashion",
+    description: "MH Fashion — vêtements homme tendance en Tunisie avec livraison rapide et prix abordables.",
+    images: ["/logo2.png"],
   },
 
   icons: {

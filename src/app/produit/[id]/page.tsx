@@ -1,6 +1,6 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 
-import ProductDetailClient from '@/app/produit/[id]/ProductDetailClient';
+import { buildProductPath } from '@/lib/productRoutes';
 import { getStorefrontProductById } from '@/lib/storefrontProducts';
 
 interface ProductDetailPageProps {
@@ -16,5 +16,5 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
-  return <ProductDetailClient product={product} />;
+  permanentRedirect(buildProductPath(product));
 }

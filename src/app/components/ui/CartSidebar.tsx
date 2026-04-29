@@ -9,6 +9,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { buildProductImageUrl } from '@/lib/imageUrl';
+import { buildProductPath } from '@/lib/productRoutes';
 
 export default function CartSidebar() {
   const {
@@ -106,6 +107,7 @@ export default function CartSidebar() {
 
               {items.map((item) => {
                 const itemName = item.name[lang as 'fr' | 'ar'] || item.name.fr;
+                const productPath = buildProductPath(item);
                 return (
                   <div
                     key={item.cartItemId}
@@ -113,7 +115,7 @@ export default function CartSidebar() {
                   >
                     <div className="flex items-start gap-3">
                       <Link
-                        href={`/produit/${item._id}`}
+                        href={productPath}
                         onClick={handleClose}
                         className="relative h-20 w-20 overflow-hidden rounded-2xl bg-white"
                       >
@@ -130,7 +132,7 @@ export default function CartSidebar() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <Link
-                              href={`/produit/${item._id}`}
+                              href={productPath}
                               onClick={handleClose}
                               className="text-sm font-semibold text-[#111111] hover:underline"
                             >

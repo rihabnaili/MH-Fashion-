@@ -1,20 +1,21 @@
-'use client';
-
+import type { Metadata } from 'next';
 import React from 'react';
-import { AdminAuthProvider } from '@/app/context/AdminAuthContext';
-import ProtectedRoute from '@/app/components/admin/ProtectedRoute';
-import AdminNavigation from '@/app/components/admin/AdminNavigation';
+
+import AdminShell from './AdminShell';
+
+export const metadata: Metadata = {
+  title: 'Administration - MH Fashion',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+};
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AdminAuthProvider>
-      <ProtectedRoute>
-        <AdminNavigation>{children}</AdminNavigation>
-      </ProtectedRoute>
-    </AdminAuthProvider>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

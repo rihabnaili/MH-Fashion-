@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { normalizeProductImages } from '@/lib/productImageUrls';
+import { getCategoryBySlug, getProductSlug } from '@/lib/productRoutes';
 
 export interface StorefrontProduct {
   _id: string;
@@ -10,6 +11,7 @@ export interface StorefrontProduct {
     fr: string;
     ar: string;
   };
+  slug: string;
   price: number;
   originalPrice?: number;
   size: string[];
@@ -30,6 +32,7 @@ export interface StorefrontProduct {
 
 const storefrontProductProjection = {
   name: 1,
+  slug: 1,
   price: 1,
   originalPrice: 1,
   size: 1,
@@ -45,6 +48,15 @@ const storefrontProductProjection = {
     $ifNull: ['$imageCount', { $size: { $ifNull: ['$images', []] } }],
   },
 };
+
+export function normalizeStorefrontProduct(product: any) {
+  const normalizedProduct = normalizeProductImages(product);
+
+  return {
+    ...normalizedProduct,
+    slug: getProductSlug(normalizedProduct),
+  } as StorefrontProduct;
+}
 
 export async function getStorefrontProductById(id: string) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -62,7 +74,58 @@ export async function getStorefrontProductById(id: string) {
     return null;
   }
 
-  return normalizeProductImages(product) as StorefrontProduct;
+  return normalizeStorefrontProduct(product);
+}
+
+export async function getStorefrontProductBySlug(categorySlug: string, productSlug: string) {
+  const category = getCategoryBySlug(categorySlug);
+  if (!category) {
+    return null;
+  }
+
+  await connectDB();
+
+  const [storedSlugProduct] = await Product.aggregate([
+    {
+      $match: {
+        category: category.value,
+        availability: true,
+        slug: productSlug,
+      },
+    },
+    { $project: storefrontProductProjection },
+    { $limit: 1 },
+  ]);
+
+  if (storedSlugProduct) {
+    return normalizeStorefrontProduct(storedSlugProduct);
+  }
+
+  const products = await Product.aggregate([
+    {
+      $match: {
+        category: category.value,
+        availability: true,
+      },
+    },
+    { $project: storefrontProductProjection },
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  const product = products.find((candidate: any) => getProductSlug(candidate) === productSlug);
+  return product ? normalizeStorefrontProduct(product) : null;
+}
+
+export async function getAllStorefrontProducts() {
+  await connectDB();
+
+  const products = await Product.aggregate([
+    { $match: { availability: true } },
+    { $project: storefrontProductProjection },
+    { $sort: { category: 1, createdAt: -1 } },
+  ]);
+
+  return products.map(normalizeStorefrontProduct);
 }
 
 export { storefrontProductProjection };

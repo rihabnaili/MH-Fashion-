@@ -7,6 +7,7 @@ export interface Product {
     fr: string;
     ar: string;
   };
+  slug: string;
   price: number;
   originalPrice?: number;
   discount: number;

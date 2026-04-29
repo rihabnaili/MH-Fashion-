@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCategoryBySlug, SITE_URL } from '@/lib/productRoutes';
 
 export default function CategoryLayout({
   children,
@@ -10,23 +11,32 @@ export default function CategoryLayout({
 
 // Generate metadata for category pages
 export async function generateMetadata({ params }: { params: { category: string } }) {
-  const categorySlug = params.category;
-  
-  // Map category slugs to display names
-  const categoryNames: Record<string, string> = {
-    'ensembles': 'Ensembles',
-    't-shirts-polos': 'T-shirts & Polos',
-    'shorts-pantalons': 'Shorts & Pantalons',
-    'chemises': 'Chemises',
-    'packs-offres-speciales': 'Packs & Offres Spéciales',
-    'promos': 'Promotions',
-    'nouveautes': 'Nouveautés'
-  };
-
-  const categoryName = categoryNames[categorySlug] || 'Catégorie';
+  const category = getCategoryBySlug(params.category);
+  const categoryName = category?.label || 'Categorie';
+  const description =
+    category?.description || `Decouvrez notre collection ${categoryName.toLowerCase()} chez MH Fashion.`;
+  const canonicalPath = category ? `/${category.slug}` : `/${params.category}`;
 
   return {
     title: `${categoryName} - MH Fashion`,
-    description: `Découvrez notre collection de ${categoryName.toLowerCase()} chez MH Fashion.`,
+    description,
+    alternates: {
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      title: `${categoryName} - MH Fashion`,
+      description,
+      url: `${SITE_URL}${canonicalPath}`,
+      siteName: 'MH Fashion',
+      images: [
+        {
+          url: '/logo2.png',
+          width: 1200,
+          height: 630,
+          alt: 'MH Fashion',
+        },
+      ],
+      type: 'website',
+    },
   };
 }

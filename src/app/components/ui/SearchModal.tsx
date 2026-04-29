@@ -10,6 +10,7 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import { useProducts } from "@/app/hooks/useProducts";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { buildProductImageUrl } from "@/lib/imageUrl";
+import { buildProductPath } from "@/lib/productRoutes";
 
 type SearchModalProps = {
   isOpen: boolean;
@@ -172,7 +173,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                           </div>
                           <button
                             onClick={() => {
-                              router.push(`/produit/${product._id}`);
+                              router.push(buildProductPath(product));
                               onClose();
                             }}
                             className="w-full rounded bg-black py-1 text-[10px] font-medium text-white transition-colors hover:bg-gray-800 sm:py-1.5 sm:text-xs"

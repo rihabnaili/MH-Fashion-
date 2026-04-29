@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { useTranslations } from "@/app/hooks/useTranslations";
 import { buildProductImageUrl } from "@/lib/imageUrl";
+import { buildProductPath } from "@/lib/productRoutes";
 
 const ProductCard = ({ product, className = "" }) => {
   const t = useTranslations();
@@ -69,7 +70,7 @@ const ProductCard = ({ product, className = "" }) => {
         </div>
 
         <Link
-          href={`/produit/${product._id}`}
+          href={buildProductPath(product)}
           className="mt-5 inline-flex items-center justify-center rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
         >
           {actionLabel}

@@ -8,28 +8,7 @@ import { useProducts } from '@/app/hooks/useProducts';
 import ProductCard from '@/app/components/ui/ProductCard';
 import ProductGridSkeleton from '@/app/components/ui/ProductGridSkeleton';
 import { AlertCircle } from 'lucide-react';
-
-// Map category slugs to actual category values
-const categorySlugMap: Record<string, string> = {
-  'ensembles': 'ensembles',
-  't-shirts-polos': 'tShirtsPolos',
-  'shorts-pantalons': 'shortsPantalons',
-  'chemises': 'chemises',
-  'packs-offres-speciales': 'packsOffresSpeciales',
-  'promos': 'promos',
-  'nouveautes': 'nouveautes'
-};
-
-// Reverse mapping for display names
-const categoryDisplayMap: Record<string, string> = {
-  'ensembles': 'ensembles',
-  't-shirts-polos': 'tShirtsPolos',
-  'shorts-pantalons': 'shortsPantalons',
-  'chemises': 'chemises',
-  'packs-offres-speciales': 'packsOffresSpeciales',
-  'promos': 'promos',
-  'nouveautes': 'nouveautes'
-};
+import { categorySlugMap } from '@/lib/productRoutes';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -40,7 +19,7 @@ export default function CategoryPage() {
   
   const categorySlug = params.category as string;
   const categoryValue = categorySlugMap[categorySlug];
-  const categoryDisplayName = categoryDisplayMap[categorySlug];
+  const categoryDisplayName = categoryValue;
 
   // Fetch products for this category
   const { products, isLoading, error, pagination, fetchProducts } = useProducts({
