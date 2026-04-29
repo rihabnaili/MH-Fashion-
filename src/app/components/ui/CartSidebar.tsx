@@ -108,7 +108,7 @@ export default function CartSidebar() {
                 const itemName = item.name[lang as 'fr' | 'ar'] || item.name.fr;
                 return (
                   <div
-                    key={`${item._id}-${item.size}-${item.color}`}
+                    key={item.cartItemId}
                     className="rounded-[1.5rem] border border-[#e7e7e7] bg-[#fafafa] p-3"
                   >
                     <div className="flex items-start gap-3">
@@ -143,7 +143,7 @@ export default function CartSidebar() {
 
                           <button
                             type="button"
-                            onClick={() => removeFromCart(item._id, item.size, item.color)}
+                            onClick={() => removeFromCart(item.cartItemId)}
                             className="text-[#8b8b8b] transition-colors hover:text-[#c73030]"
                             aria-label={t('delete')}
                           >
@@ -155,9 +155,7 @@ export default function CartSidebar() {
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() =>
-                                updateQuantity(item._id, item.size, item.color, item.quantity - 1)
-                              }
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d7d7d7] text-[#111111]"
                             >
                               <Minus className="h-3.5 w-3.5" />
@@ -167,9 +165,7 @@ export default function CartSidebar() {
                             </span>
                             <button
                               type="button"
-                              onClick={() =>
-                                updateQuantity(item._id, item.size, item.color, item.quantity + 1)
-                              }
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d7d7d7] text-[#111111]"
                             >
                               <Plus className="h-3.5 w-3.5" />
