@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Minus, Plus, ShoppingBag } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 
+import CheckoutForm from '@/app/produit/[id]/CheckoutForm';
 import ProductImageGallery from '@/app/components/ui/ProductImageGallery';
-import { useCart } from '@/app/context/CartContext';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { PRODUCT_SIZES } from '@/lib/productOptions';
@@ -18,14 +18,12 @@ const DELIVERY_FEE = 8;
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { lang } = useLanguage();
-  const { addToCart, openCart } = useCart();
   const t = useTranslations();
 
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectionError, setSelectionError] = useState('');
-  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const productName = product.name[lang as keyof typeof product.name] || product.name.fr;
   const productDescription =
@@ -34,38 +32,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const requiresColor = product.color.length > 0;
   const availableSizes = new Set(product.size);
   const disabledColors = new Set(product.disabledColors || []);
-  const variantHint =
-    lang === 'ar'
-      ? 'يمكنك إضافة نفس المنتج بمقاسات أو ألوان مختلفة ثم إنهاء الطلب من السلة الجانبية.'
-      : 'Vous pouvez ajouter le meme produit en plusieurs tailles ou couleurs puis finaliser depuis le panier lateral.';
-  const openCartLabel = lang === 'ar' ? 'فتح السلة' : 'Ouvrir le panier';
 
   const handleQuantityChange = (increment: boolean) => {
     setQuantity((previousQuantity) => {
       const nextQuantity = increment ? previousQuantity + 1 : previousQuantity - 1;
       return Math.max(1, nextQuantity);
     });
-  };
-
-  const handleAddToCart = () => {
-    setSelectionError('');
-    setConfirmationMessage('');
-
-    if (
-      (requiresSize && !selectedSize) ||
-      (requiresColor && (!selectedColor || disabledColors.has(selectedColor)))
-    ) {
-      setSelectionError(t('pleaseSelectSizeAndColor'));
-      return;
-    }
-
-    addToCart(product, selectedSize, selectedColor, quantity);
-
-    const confirmation =
-      lang === 'ar'
-        ? 'تمت إضافة هذا الخيار إلى السلة. يمكنك الآن تغيير اللون أو المقاس وإضافة خيار آخر قبل فتح السلة.'
-        : 'Cette variante a ete ajoutee au panier. Vous pouvez maintenant changer la taille ou la couleur et ajouter une autre variante avant d ouvrir le panier.';
-    setConfirmationMessage(confirmation);
   };
 
   return (
@@ -190,65 +162,26 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </div>
             </div>
 
-            <div className="space-y-4 rounded-[1.75rem] border border-[#e6e6e6] bg-[#fafafa] p-4 sm:p-5">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-[#111111]">{t('cart')}</h2>
-                <p className="text-sm text-[#666666]">{variantHint}</p>
+            {selectionError && (
+              <div className="rounded-2xl border border-[#e3c5c5] bg-[#fff5f5] px-4 py-3 text-sm text-[#8f2a2a]">
+                {selectionError}
               </div>
+            )}
 
-              <div className="rounded-2xl border border-[#e3e3e3] bg-white px-4 py-3">
-                <div className="flex items-center justify-between text-sm text-[#666666]">
-                  <span>{t('price')}</span>
-                  <span>
-                    {(product.price * quantity).toFixed(2)} {t('dt')}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-sm text-[#666666]">
-                  <span>{t('deliveryFees')}</span>
-                  <span>
-                    +{DELIVERY_FEE.toFixed(2)} {t('dt')}
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-[#dfdfdf] pt-3 text-base font-semibold text-[#111111]">
-                  <span>{t('total')}</span>
-                  <span>
-                    {(product.price * quantity + DELIVERY_FEE).toFixed(2)} {t('dt')}
-                  </span>
-                </div>
-              </div>
-
-              {selectionError && (
-                <div className="rounded-2xl border border-[#e3c5c5] bg-[#fff5f5] px-4 py-3 text-sm text-[#8f2a2a]">
-                  {selectionError}
-                </div>
-              )}
-
-              {confirmationMessage && (
-                <div className="rounded-2xl border border-[#d7e5d1] bg-[#f5fbf2] px-4 py-3 text-sm text-[#34572b]">
-                  {confirmationMessage}
-                </div>
-              )}
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-4 text-sm font-semibold text-white transition-colors hover:bg-[#222222]"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>{t('addToCart')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={openCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[#d7d7d7] bg-white py-4 text-sm font-semibold text-[#111111] transition-colors hover:border-black"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>{openCartLabel}</span>
-                </button>
-              </div>
-            </div>
+            {/* Redirect to checkout form when selections are valid */}
+            <CheckoutForm
+              product={product}
+              selectedSize={selectedSize}
+              selectedColor={selectedColor}
+              quantity={quantity}
+              onSuccess={() => {
+                // Reset selections after successful order
+                setSelectedSize('');
+                setSelectedColor('');
+                setQuantity(1);
+                setSelectionError('');
+              }}
+            />
 
             {productDescription && (
               <div className="border-t border-gray-200 pt-6">
