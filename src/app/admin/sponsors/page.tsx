@@ -165,7 +165,7 @@ export default function AdminSponsorsPage() {
                 Sponsoring
               </h1>
               <p className="text-sm text-gray-600">
-                Ajoutez les logos des sponsors visibles sur la page d'accueil.
+                Ajoutez les logos des sponsors visibles sur la page d&apos;accueil.
               </p>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function AdminSponsorsPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Ordre d'affichage
+                  Ordre d&apos;affichage
                 </label>
                 <input
                   type="number"
@@ -351,7 +351,7 @@ export default function AdminSponsorsPage() {
                           })
                         }
                         className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-gold"
-                        aria-label="Ordre d'affichage"
+                        aria-label="Ordre d&apos;affichage"
                       />
                       <button
                         type="button"
