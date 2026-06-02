@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
+import { createMofavoOrder } from '@/lib/mofavo';
 
 // POST - Create new order
 export async function POST(request: NextRequest) {
@@ -59,13 +60,35 @@ export async function POST(request: NextRequest) {
     });
 
     await order.save();
+
+    const mofavoResult = await createMofavoOrder({
+      customer: body.customer,
+      items: body.items,
+      totalAmount: body.totalAmount,
+    });
+
+    if (mofavoResult.success) {
+      order.mofavo = {
+        syncStatus: 'synced',
+        externalOrderId: mofavoResult.externalOrderId,
+        syncedAt: new Date(),
+      };
+    } else {
+      order.mofavo = {
+        syncStatus: mofavoResult.enabled ? 'failed' : 'notConfigured',
+        error: mofavoResult.error,
+      };
+    }
+
+    await order.save();
     
     return NextResponse.json({
       success: true,
       message: 'Order created successfully',
       data: {
         orderNumber: order.orderNumber,
-        orderId: order._id
+        orderId: order._id,
+        mofavo: order.mofavo
       }
     }, { status: 201 });
 

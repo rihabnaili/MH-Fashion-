@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
-import { LogOut, Shield, Package, Plus, ShoppingCart, Home, Menu, X, BarChart3 } from 'lucide-react';
+import { LogOut, Shield, Package, Plus, ShoppingCart, Home, Menu, X, BarChart3, Handshake } from 'lucide-react';
 
 interface AdminNavigationProps {
   children: React.ReactNode;
@@ -71,6 +71,13 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
                 <span>Statistiques</span>
               </Link>
               <Link
+                href="/admin/sponsors"
+                className="text-offwhite hover:text-gold px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                <Handshake className="w-4 h-4" />
+                <span>Sponsoring</span>
+              </Link>
+              <Link
                 href="/admin/product/addNew/form"
                 className="bg-gold text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-600 transition-colors duration-200 flex items-center space-x-2"
               >
@@ -135,6 +142,14 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
                 >
                   <BarChart3 className="w-5 h-5" />
                   <span>Statistiques</span>
+                </Link>
+                <Link
+                  href="/admin/sponsors"
+                  className="text-offwhite hover:text-gold block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center space-x-3"
+                  onClick={closeMobileMenu}
+                >
+                  <Handshake className="w-5 h-5" />
+                  <span>Sponsoring</span>
                 </Link>
                 <Link
                   href="/admin/product/addNew/form"

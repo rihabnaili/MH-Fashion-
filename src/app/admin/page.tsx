@@ -25,7 +25,7 @@ export default function AdminHome() {
             Gérez vos produits, ajoutez de nouveaux articles et surveillez votre boutique en ligne
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-10 lg:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-10 lg:mb-12">
             <Link
               href="/admin/products"
               className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 group"
@@ -56,6 +56,17 @@ export default function AdminHome() {
               <h3 className="text-lg sm:text-xl font-semibold text-black mb-2">Statistiques</h3>
               <p className="text-gray-600 text-xs sm:text-sm">
                 Surveillez les performances de votre boutique
+              </p>
+            </Link>
+
+            <Link
+              href="/admin/sponsors"
+              className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 group"
+            >
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🤝</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-black mb-2">Sponsoring</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">
+                Ajoutez et organisez les sponsors visibles sur le site
               </p>
             </Link>
           </div>

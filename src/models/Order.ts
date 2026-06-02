@@ -23,6 +23,12 @@ export interface IOrder extends Document {
   totalAmount: number;
   totalDiscount: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  mofavo?: {
+    syncStatus: 'notConfigured' | 'synced' | 'failed';
+    externalOrderId?: number;
+    error?: string;
+    syncedAt?: Date;
+  };
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -101,6 +107,23 @@ const OrderSchema: Schema = new Schema({
     type: String,
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
+  },
+  mofavo: {
+    syncStatus: {
+      type: String,
+      enum: ['notConfigured', 'synced', 'failed'],
+      default: 'notConfigured'
+    },
+    externalOrderId: {
+      type: Number
+    },
+    error: {
+      type: String,
+      trim: true
+    },
+    syncedAt: {
+      type: Date
+    }
   },
   notes: {
     type: String,
