@@ -14,16 +14,24 @@
 4. Replace `<password>` with your database user password
 
 ### 3. Set Up Environment Variables
-1. Copy `env.example` to `.env.local`
+1. Copy `.env.example` to `.env.local`
 2. Update the `MONGODB_URI` with your connection string:
 
 ```bash
 # .env.local
-mongodb+srv://nailirihab8_db_user:Z7GdQCOYjPeQJXCo@cluster0.hosllhp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster-host>/mh-fashion?retryWrites=true&w=majority
 ```
 
-### 4. Test Database Connection
-Visit `/api/test-db` to test your connection.
+### 4. Set the Admin Credentials
+The admin panel (`/admin`) and all admin/order-management APIs are protected server-side.
+Set both variables in `.env.local` (and in your hosting provider's environment):
+
+```bash
+ADMIN_PASSWORD=choose-a-strong-password
+# At least 32 random characters, e.g.:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ADMIN_SESSION_SECRET=...
+```
 
 ## 📊 Database Schema
 
@@ -75,8 +83,22 @@ GET /api/products - Get all products
 GET /api/products?category=ensembles - Filter by category
 GET /api/products?search=shirt - Search products
 GET /api/products?page=1&limit=20 - Pagination
+```
 
-POST /api/products - Create new product
+### Orders
+```
+POST /api/orders - Place an order. Prices and totals are computed server-side;
+                   send only { customer, items: [{ productId, size, color, quantity }] }
+```
+
+### Admin (requires the admin session cookie)
+```
+POST   /api/admin/session   - Log in with { "password": "..." }
+DELETE /api/admin/session   - Log out
+GET    /api/admin/products  - List products
+POST   /api/admin/products  - Create product (multipart: productData + images)
+GET    /api/orders          - List orders
+PUT    /api/orders/:id      - Update order status / notes
 ```
 
 ## 📝 Sample Product Data
@@ -114,16 +136,8 @@ npm install
 # Run development server
 npm run dev
 
-# Test database connection
-curl http://localhost:3000/api/test-db
-
 # Get all products
 curl http://localhost:3000/api/products
-
-# Create a product
-curl -X POST http://localhost:3000/api/products \
-  -H "Content-Type: application/json" \
-  -d @sample-product.json
 ```
 
 ## 🔒 Security Notes

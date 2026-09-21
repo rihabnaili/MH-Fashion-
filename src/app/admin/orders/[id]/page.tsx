@@ -37,6 +37,11 @@ interface Order {
   totalDiscount: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   notes?: string;
+  mofavo?: {
+    syncStatus: 'notConfigured' | 'synced' | 'failed';
+    externalOrderId?: number;
+    error?: string;
+  };
   createdAt: string;
   updatedAt: string;
   totalItems: number;
@@ -254,7 +259,7 @@ export default function OrderDetail() {
                         )}
                       </button>
                       <button
-                        onClick={() => setIsEditing(false)}
+                        onClick={handleCancel}
                         className="px-3 sm:px-4 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-medium text-sm sm:text-base"
                       >
                         <X className="w-4 h-4" />
@@ -366,7 +371,9 @@ export default function OrderDetail() {
                   <Package className="w-5 h-5 text-gold" />
                   <div>
                     <p className="text-sm text-gray-600">Total articles</p>
-                    <p className="font-medium text-black">{order.totalItems}</p>
+                    <p className="font-medium text-black">
+                      {order.totalItems ?? order.items.reduce((total, item) => total + item.quantity, 0)}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -388,11 +395,38 @@ export default function OrderDetail() {
               </div>
             </div>
 
+            {/* Mofavo sync */}
+            {order.mofavo && order.mofavo.syncStatus !== 'notConfigured' && (
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100">
+                <h3 className="text-lg sm:text-xl font-semibold text-black mb-2">Synchronisation Mofavo</h3>
+                {order.mofavo.syncStatus === 'synced' ? (
+                  <p className="text-sm text-green-700">
+                    Synchronisée (ID Mofavo : {order.mofavo.externalOrderId})
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-700">
+                    Échec de la synchronisation{order.mofavo.error ? ` : ${order.mofavo.error}` : ''}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Notes */}
-            {order.notes && (
+            {(isEditing || order.notes) && (
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100">
                 <h3 className="text-lg sm:text-xl font-semibold text-black mb-4">Notes</h3>
-                <p className="text-gray-700 text-sm sm:text-base">{order.notes}</p>
+                {isEditing ? (
+                  <textarea
+                    value={editedNotes}
+                    onChange={(e) => setEditedNotes(e.target.value)}
+                    rows={4}
+                    maxLength={2000}
+                    placeholder="Notes internes sur la commande..."
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                  />
+                ) : (
+                  <p className="text-gray-700 text-sm sm:text-base whitespace-pre-line">{order.notes}</p>
+                )}
               </div>
             )}
           </div>

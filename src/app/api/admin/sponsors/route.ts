@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Sponsor from '@/models/Sponsor';
 
+export const dynamic = 'force-dynamic';
+
 const MAX_LOGO_BYTES = 1024 * 1024;
 const ALLOWED_LOGO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
 

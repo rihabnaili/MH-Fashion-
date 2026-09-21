@@ -8,6 +8,9 @@ import {
   replaceStoredProductImages,
 } from '@/lib/productImageStorage';
 import { normalizeProductImages } from '@/lib/productImageUrls';
+import { escapeRegex } from '@/lib/queryUtils';
+
+export const dynamic = 'force-dynamic';
 
 // POST new product with image uploads
 export async function POST(request: NextRequest) {
@@ -176,7 +179,7 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
-    const search = searchParams.get('search');
+    const search = escapeRegex((searchParams.get('search') || '').trim().slice(0, 100));
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100); // Maximum 100 items per page
     const page = Math.max(parseInt(searchParams.get('page') || '1'), 1); // Minimum page 1
     
@@ -209,6 +212,7 @@ export async function GET(request: NextRequest) {
           category: 1,
           availability: 1,
           createdAt: 1,
+          updatedAt: 1,
           imageCount: {
             $ifNull: ['$imageCount', { $size: { $ifNull: ['$images', []] } }],
           },

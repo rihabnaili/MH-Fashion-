@@ -11,6 +11,8 @@
     "dev": "next dev",
     "build": "next build",
     "migrate:product-images": "node scripts/migrate-product-images.mjs",
+    "seed:test": "node scripts/seed-test-products.mjs",
+    "seed:test:clean": "node scripts/seed-test-products.mjs --clean",
     "out": "next build && next export",
     "deploy2": "cross-env NODE_ENV=production firebase deploy --only functions,hosting",
     "deploy": "firebase deploy --only functions,hosting",

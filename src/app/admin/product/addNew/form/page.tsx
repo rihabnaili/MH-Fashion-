@@ -117,6 +117,12 @@ export default function AddNewProductForm() {
         return;
       }
 
+      if (images.length === 0) {
+        alert('Veuillez ajouter au moins une image');
+        setIsLoading(false);
+        return;
+      }
+
       // Create FormData for file upload
       const formDataToSend = new FormData();
       
@@ -138,7 +144,7 @@ export default function AddNewProductForm() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         size: filteredSizes,
         color: filteredColors,
-        discount: parseFloat(formData.discount),
+        discount: parseFloat(formData.discount) || 0,
         category: formData.category,
         availability: formData.availability,
         description: formData.description
@@ -158,8 +164,11 @@ export default function AddNewProductForm() {
         alert('Produit créé avec succès !');
         router.push('/admin/products');
       } else {
-        const error = await response.json();
-        alert(`Erreur : ${error.message}`);
+        const error = await response.json().catch(() => ({}));
+        // Include the server's detailed reason so failures can be diagnosed.
+        alert(`Erreur : ${error.message || response.statusText}${error.error ? `
+
+Détail : ${error.error}` : ''}`);
       }
     } catch (error) {
       console.error('Error creating product:', error);

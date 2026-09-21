@@ -18,13 +18,10 @@ export default function PasswordProtection() {
     setIsLoading(true);
     setError('');
 
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const result = await login(password);
 
-    if (login(password)) {
-      // Password is correct, no need to do anything as context will update
-    } else {
-      setError('Mot de passe incorrect. Veuillez réessayer.');
+    if (!result.success) {
+      setError(result.message || 'Mot de passe incorrect. Veuillez réessayer.');
       setPassword('');
     }
     

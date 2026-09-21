@@ -55,6 +55,7 @@ export default function AdminOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
@@ -123,8 +124,8 @@ export default function AdminOrders() {
     setCurrentPage(1);
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  const handleSearch = () => {
+    setSearchQuery(searchInput.trim());
     setCurrentPage(1);
   };
 
@@ -232,6 +233,7 @@ export default function AdminOrders() {
 
   const handleClearFilters = () => {
     setSelectedStatus('all');
+    setSearchInput('');
     setSearchQuery('');
     setCurrentPage(1);
   };
@@ -261,8 +263,11 @@ export default function AdminOrders() {
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
                 className="w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-200 text-sm sm:text-base"
               />
             </div>
@@ -271,7 +276,7 @@ export default function AdminOrders() {
             <div>
               <select
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
+                onChange={(e) => handleStatusChange(e.target.value)}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-200 text-sm sm:text-base"
               >
                 {statusOptions.map((option) => (
@@ -284,7 +289,7 @@ export default function AdminOrders() {
 
             {/* Search Button */}
             <button
-              onClick={() => handleSearch(searchQuery)}
+              onClick={handleSearch}
               className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-gold text-black rounded-lg hover:bg-yellow-600 transition-colors duration-200 font-medium shadow-md text-sm sm:text-base flex items-center justify-center space-x-2"
             >
               <Search className="w-4 h-4" />
@@ -365,7 +370,7 @@ export default function AdminOrders() {
                     <div className="pt-2 border-t border-gray-200">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
-                          {order.totalItems} article(s)
+                          {order.totalItems ?? order.items.reduce((total, item) => total + item.quantity, 0)} article(s)
                         </span>
                         <div className="flex items-center space-x-2">
                           <Link
@@ -448,7 +453,7 @@ export default function AdminOrders() {
                       </td>
                       <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-700">
-                          {order.totalItems} article(s)
+                          {order.totalItems ?? order.items.reduce((total, item) => total + item.quantity, 0)} article(s)
                         </div>
                       </td>
                       <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">

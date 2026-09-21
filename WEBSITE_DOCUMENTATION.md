@@ -467,17 +467,14 @@ Files:
 
 Current behavior:
 
-- Admin UI is protected by a client-side password form.
-- Password is hardcoded in the frontend code: `MHADMIN@123`.
-- Successful login stores `adminAuthenticated=true` in `localStorage`.
-- Logout removes this localStorage value.
-
-Important security note:
-
-- This protects only the admin UI in the browser.
-- The backend admin API routes do not currently enforce server-side authentication.
-- Anyone who can reach the API endpoints can call admin routes directly if they know the URLs.
-- This should be fixed before production use.
+- The admin password is configured server-side via the `ADMIN_PASSWORD` environment variable.
+- The login form posts to `POST /api/admin/session`, which verifies the password (rate-limited to 5 failed attempts per 15 minutes per IP) and sets an HMAC-signed, `httpOnly`, `SameSite=Strict` cookie (`mh_admin_session`, valid 12 hours) signed with `ADMIN_SESSION_SECRET`.
+- `GET /api/admin/session` tells the UI whether the current session is valid; `DELETE` logs out.
+- `src/middleware.ts` rejects with `401` any request without a valid session to:
+  - `/api/admin/*` (except `/api/admin/session`)
+  - `GET /api/orders`
+  - `/api/orders/[id]` (all methods)
+- `POST /api/orders` (customer checkout) stays public.
 
 ### 8.2 Admin Dashboard
 
@@ -696,26 +693,9 @@ Sponsor display:
 
 All API routes are implemented under `src/app/api`.
 
-### 9.1 Database Test
+### 9.1 Admin Session
 
-`GET /api/test-db`
-
-Purpose:
-
-- Tests MongoDB connection.
-
-Success:
-
-```json
-{
-  "success": true,
-  "message": "Database connected successfully!"
-}
-```
-
-Failure:
-
-- Returns `500` with error message.
+`GET | POST | DELETE /api/admin/session` — see section 8.1.
 
 ### 9.2 Public Products
 
@@ -724,10 +704,10 @@ Failure:
 Query parameters:
 
 - `category`: optional category value.
-- `limit`: default `12`.
+- `limit`: default `12`, max `60`.
 - `page`: default `1`.
-- `search`: optional search query.
-- `sortBy`: default `createdAt`.
+- `search`: optional search query (regex-escaped, max 100 chars).
+- `sortBy`: default `createdAt`; one of `createdAt`, `price`, `name.fr`, `name.ar`, `discount`.
 - `sortOrder`: default `desc`.
 
 Behavior:
@@ -743,16 +723,7 @@ Behavior:
 - Returns only the first image URL for list views.
 - Adds cache header: `public, s-maxage=60, stale-while-revalidate=300`.
 
-`POST /api/products`
-
-Purpose:
-
-- Creates a product from JSON.
-
-Important note:
-
-- This route is public in the current code and does not require authentication.
-- The admin product creation route is more complete because it handles uploaded images.
+Products are created only through the authenticated `POST /api/admin/products`.
 
 ### 9.3 Public Product by ID
 
@@ -1447,48 +1418,13 @@ Recommended future setup:
 
 ## 19. Known Issues and Gaps
 
-### 19.1 Admin Security Gap
+### 19.1 – 19.3 (resolved)
 
-Admin auth is currently client-side only.
-
-Risk:
-
-- The password is visible in frontend code.
-- LocalStorage can be modified manually.
-- Admin API routes do not check server-side auth.
-- Product/order/sponsor/statistics endpoints can be called directly.
-
-Recommended fix:
-
-- Add real server-side authentication.
-- Protect API routes with session/cookie/JWT checks.
-- Move admin secret out of client code.
-- Add CSRF protection if cookie sessions are used.
-
-### 19.2 Public Product POST Route
-
-`POST /api/products` creates products from JSON and is public.
-
-Risk:
-
-- Anyone can create products if the route is reachable.
-
-Recommended fix:
-
-- Remove this route if unused.
-- Or protect it with the same admin API auth.
-
-### 19.3 Order Update Route Accepts Arbitrary Body Fields
-
-`PUT /api/orders/[id]` validates status only if present, then spreads the full body into the update.
-
-Risk:
-
-- A caller can update unexpected fields.
-
-Recommended fix:
-
-- Whitelist allowed update fields, for example `status` and `notes`.
+- Admin auth is now enforced server-side (section 8.1).
+- The public `POST /api/products` route was removed.
+- `PUT /api/orders/[id]` only accepts `status` and `notes`.
+- `POST /api/orders` computes prices, discount, delivery fee and total from the database;
+  client-supplied prices are ignored.
 
 ### 19.4 No Automated Tests
 
@@ -1502,17 +1438,10 @@ Recommended fix:
 
 - Add a test framework and package scripts.
 
-### 19.5 Build/Network Sensitivity
+### 19.5 Build/Network Sensitivity (resolved)
 
-The app uses `next/font/google`.
-
-Risk:
-
-- Production build can fail or hang when Google Fonts are unreachable.
-
-Recommended fix:
-
-- Consider self-hosting fonts if builds must work offline or behind restrictive networks.
+Fonts (Montserrat, Cinzel, Noto Sans Arabic) are now self-hosted variable WOFF2 files in
+`src/app/fonts/`, loaded with `next/font/local`. Dev and builds no longer contact Google Fonts.
 
 ### 19.6 MongoDB DNS/Network Dependency
 

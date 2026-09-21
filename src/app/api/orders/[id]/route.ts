@@ -1,6 +1,7 @@
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Order from '@/models/Order';
+import Order, { withTotalItems } from '@/models/Order';
 
 // GET - Fetch single order
 export async function GET(
@@ -8,6 +9,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
     await connectDB();
     
     const order = await Order.findById(params.id).lean();
@@ -21,7 +29,7 @@ export async function GET(
     
     return NextResponse.json({
       success: true,
-      data: order
+      data: withTotalItems(order as any)
     });
     
   } catch (error) {
@@ -44,9 +52,16 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
     await connectDB();
     
-    const body = await request.json();
+    const body = (await request.json().catch(() => null)) || {};
     
     // Validate status if provided
     if (body.status && !['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(body.status)) {
@@ -59,12 +74,18 @@ export async function PUT(
       );
     }
     
+    // Only status and notes are editable; everything else (items, totals, customer) is immutable.
+    const updates: Record<string, unknown> = {};
+    if (typeof body.status === 'string') {
+      updates.status = body.status;
+    }
+    if (typeof body.notes === 'string') {
+      updates.notes = body.notes.slice(0, 2000);
+    }
+
     const order = await Order.findByIdAndUpdate(
       params.id,
-      { 
-        ...body,
-        updatedAt: new Date()
-      },
+      updates,
       { new: true, runValidators: true }
     ).lean();
     
@@ -78,7 +99,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: 'Order updated successfully',
-      data: order
+      data: withTotalItems(order as any)
     });
     
   } catch (error) {
@@ -101,6 +122,13 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
     await connectDB();
     
     const order = await Order.findByIdAndDelete(params.id);

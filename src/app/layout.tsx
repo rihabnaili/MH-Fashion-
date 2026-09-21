@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Cinzel, Montserrat, Noto_Sans_Arabic } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import MainLayout from "./components/layouts/MainLayout";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -9,20 +9,25 @@ import { SITE_URL } from "@/lib/productRoutes";
 
 const META_PIXEL_ID = "4424903821170372";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
+// Fonts are self-hosted (variable WOFF2 files from Fontsource) so dev and builds
+// don't depend on reaching Google Fonts.
+const montserrat = localFont({
+  src: "./fonts/montserrat-latin-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-montserrat",
   display: "swap",
 });
 
-const cinzel = Cinzel({
-  subsets: ["latin"],
+const cinzel = localFont({
+  src: "./fonts/cinzel-latin-wght-normal.woff2",
+  weight: "400 900",
   variable: "--font-cinzel",
   display: "swap",
 });
 
-const notoSansArabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
+const notoSansArabic = localFont({
+  src: "./fonts/noto-sans-arabic-arabic-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-noto-sans-arabic",
   display: "swap",
 });

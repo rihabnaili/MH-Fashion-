@@ -36,14 +36,28 @@ export function buildProductImagePath(
   return `/api/images/${productId}/${index}?v=${variant}`;
 }
 
-export function buildProductImagePaths(productId: string, count: number) {
+// Images are served with an immutable cache header, so the URL must change whenever the
+// product changes; otherwise replaced photos stay cached for a year.
+function toImageVersion(updatedAt: unknown) {
+  if (!updatedAt) {
+    return null;
+  }
+
+  const time = new Date(updatedAt as string | number | Date).getTime();
+  return Number.isFinite(time) ? time.toString(36) : null;
+}
+
+export function buildProductImagePaths(productId: string, count: number, updatedAt?: unknown) {
   if (count <= 0) {
     return [PRODUCT_IMAGE_FALLBACK];
   }
 
-  return Array.from({ length: count }, (_, index) =>
-    buildProductImagePath(productId, index)
-  );
+  const version = toImageVersion(updatedAt);
+
+  return Array.from({ length: count }, (_, index) => {
+    const path = buildProductImagePath(productId, index);
+    return version ? `${path}?t=${version}` : path;
+  });
 }
 
 export function resolveRequestedProductImageVariant(
@@ -80,7 +94,9 @@ export function resolveProductImageCount(product: {
   return 0;
 }
 
-export function normalizeProductImages<T extends { _id: unknown; imageCount?: number | null; images?: unknown }>(
+export function normalizeProductImages<
+  T extends { _id: unknown; imageCount?: number | null; images?: unknown; updatedAt?: unknown }
+>(
   product: T
 ) {
   const imageCount = resolveProductImageCount(product);
@@ -90,7 +106,7 @@ export function normalizeProductImages<T extends { _id: unknown; imageCount?: nu
     ...product,
     _id: normalizedId,
     imageCount,
-    images: buildProductImagePaths(normalizedId, imageCount),
+    images: buildProductImagePaths(normalizedId, imageCount, product.updatedAt),
   };
 }
 

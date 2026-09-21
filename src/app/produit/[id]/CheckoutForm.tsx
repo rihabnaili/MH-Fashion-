@@ -5,6 +5,7 @@ import { CheckCircle2 } from 'lucide-react';
 
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
+import { DELIVERY_FEE } from '@/lib/orderPricing';
 import type { StorefrontProduct } from '@/lib/storefrontProducts';
 
 interface CheckoutFormProps {
@@ -14,8 +15,6 @@ interface CheckoutFormProps {
   quantity: number;
   onSuccess?: (orderNumber: string) => void;
 }
-
-const DELIVERY_FEE = 8;
 
 export default function CheckoutForm({
   product,
@@ -52,7 +51,7 @@ export default function CheckoutForm({
     setSubmitError('');
 
     const trimmedPhone = phoneNumber.trim();
-    if (!trimmedPhone || !/^\+?[0-9\s]+$/.test(trimmedPhone)) {
+    if (!trimmedPhone || !/^\+?[0-9\s]{8,20}$/.test(trimmedPhone)) {
       setSubmitError(t('pleaseEnterPhone'));
       return;
     }
@@ -71,20 +70,15 @@ export default function CheckoutForm({
             phone: trimmedPhone,
             address: deliveryAddress.trim(),
           },
+          // Prices and totals are computed by the server from the product catalogue.
           items: [
             {
               productId: product._id,
-              productName: product.name,
-              price: product.price,
-              originalPrice: product.originalPrice,
               size: selectedSize || '-',
               color: selectedColor || '-',
               quantity: quantity,
-              images: product.images,
             },
           ],
-          totalAmount,
-          totalDiscount: (product.originalPrice || 0) - product.price * quantity || 0,
         }),
       });
 

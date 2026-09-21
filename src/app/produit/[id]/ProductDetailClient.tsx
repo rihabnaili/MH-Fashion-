@@ -7,14 +7,13 @@ import CheckoutForm from '@/app/produit/[id]/CheckoutForm';
 import ProductImageGallery from '@/app/components/ui/ProductImageGallery';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
+import { DELIVERY_FEE, MAX_ITEM_QUANTITY } from '@/lib/orderPricing';
 import { PRODUCT_SIZES } from '@/lib/productOptions';
 import type { StorefrontProduct } from '@/lib/storefrontProducts';
 
 interface ProductDetailClientProps {
   product: StorefrontProduct;
 }
-
-const DELIVERY_FEE = 8;
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { lang } = useLanguage();
@@ -36,7 +35,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const handleQuantityChange = (increment: boolean) => {
     setQuantity((previousQuantity) => {
       const nextQuantity = increment ? previousQuantity + 1 : previousQuantity - 1;
-      return Math.max(1, nextQuantity);
+      return Math.min(MAX_ITEM_QUANTITY, Math.max(1, nextQuantity));
     });
   };
 

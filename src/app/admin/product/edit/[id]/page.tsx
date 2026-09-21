@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
@@ -78,6 +78,8 @@ export default function EditProductForm() {
   const { lang } = useLanguage();
   const { logout } = useAdminAuth();
   const t = useTranslations();
+  const tRef = useRef(t);
+  tRef.current = t;
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
@@ -113,29 +115,32 @@ export default function EditProductForm() {
         
         // Populate form with existing data
         setFormData({
-          name: productData.name,
-          price: productData.price.toString(),
-          originalPrice: productData.originalPrice?.toString() || '',
+          name: { fr: productData.name?.fr || '', ar: productData.name?.ar || '' },
+          price: String(productData.price ?? ''),
+          originalPrice: productData.originalPrice != null ? String(productData.originalPrice) : '',
           size: productData.size || [],
           color: productData.color || [],
           disabledColors: syncDisabledColors(productData.color || [], productData.disabledColors || []),
-          discount: productData.discount.toString(),
+          discount: String(productData.discount ?? 0),
           category: productData.category,
           availability: productData.availability,
-          description: productData.description
+          description: {
+            fr: productData.description?.fr || '',
+            ar: productData.description?.ar || '',
+          },
         });
       } else {
-        alert(t("errorLoading"));
+        alert(tRef.current("errorLoading"));
         router.push('/admin/products');
       }
     } catch (error) {
       console.error('Error fetching product:', error);
-      alert(t("errorLoading"));
+      alert(tRef.current("errorLoading"));
       router.push('/admin/products');
     } finally {
       setIsLoading(false);
     }
-  }, [productId, router, t]);
+  }, [productId, router]);
 
   useEffect(() => {
     if (productId) {
@@ -277,11 +282,12 @@ export default function EditProductForm() {
       formDataToSend.append('productData', JSON.stringify({
         name: formData.name,
         price: parseFloat(formData.price),
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        // null (not undefined, which JSON drops) so clearing the field removes the original price
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
         size: filteredSizes,
         color: filteredColors,
         disabledColors: filteredDisabledColors,
-        discount: parseFloat(formData.discount),
+        discount: parseFloat(formData.discount) || 0,
         category: formData.category,
         availability: formData.availability,
         description: formData.description
@@ -306,8 +312,10 @@ export default function EditProductForm() {
         alert(t("productUpdatedSuccessfully"));
         router.push('/admin/products');
       } else {
-        const error = await response.json();
-        alert(`${t("error")}: ${error.message}`);
+        const error = await response.json().catch(() => ({}));
+        alert(`${t("error")}: ${error.message || response.statusText}${error.error ? `
+
+Détail : ${error.error}` : ''}`);
       }
     } catch (error) {
       console.error('Error updating product:', error);

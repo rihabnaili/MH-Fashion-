@@ -32,11 +32,14 @@ export async function GET(request: NextRequest) {
     // Get all orders for the period
     const orders = await Order.find(dateQuery).lean();
     
+    // Cancelled orders are counted, but never contribute to revenue or items sold.
+    const billableOrders = orders.filter((order) => order.status !== 'cancelled');
+
     // Calculate order statistics
     const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-    const totalDiscount = orders.reduce((sum, order) => sum + (order.totalDiscount || 0), 0);
-    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const totalRevenue = billableOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+    const totalDiscount = billableOrders.reduce((sum, order) => sum + (order.totalDiscount || 0), 0);
+    const averageOrderValue = billableOrders.length > 0 ? totalRevenue / billableOrders.length : 0;
     
     // Orders by status
     const ordersByStatus = orders.reduce((acc: any, order) => {
@@ -66,7 +69,9 @@ export async function GET(request: NextRequest) {
     }, {});
     
     // Revenue by date
-    const revenueByDate = recentOrders.reduce((acc: any, order) => {
+    const revenueByDate = recentOrders
+      .filter((order) => order.status !== 'cancelled')
+      .reduce((acc: any, order) => {
       const date = new Date(order.createdAt).toISOString().split('T')[0];
       acc[date] = (acc[date] || 0) + (order.totalAmount || 0);
       return acc;
@@ -89,6 +94,7 @@ export async function GET(request: NextRequest) {
     
     // Top selling products (by quantity in orders)
     const topProducts = await Order.aggregate([
+      { $match: { ...dateQuery, status: { $ne: 'cancelled' } } },
       { $unwind: '$items' },
       {
         $group: {
@@ -103,7 +109,7 @@ export async function GET(request: NextRequest) {
     ]);
     
     // Total items sold
-    const totalItemsSold = orders.reduce((sum, order) => {
+    const totalItemsSold = billableOrders.reduce((sum, order) => {
       return sum + (order.items?.reduce((itemSum: number, item: any) => 
         itemSum + (item.quantity || 0), 0) || 0);
     }, 0);

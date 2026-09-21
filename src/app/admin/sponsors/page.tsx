@@ -51,6 +51,8 @@ export default function AdminSponsorsPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // React clears event.currentTarget once the handler awaits, so keep a reference.
+    const form = event.currentTarget;
     setMessage('');
 
     if (!logo) {
@@ -83,7 +85,7 @@ export default function AdminSponsorsPage() {
       );
       setFormState({ name: '', websiteUrl: '', displayOrder: '0', active: true });
       setLogo(null);
-      event.currentTarget.reset();
+      form.reset();
       setMessage('Sponsor ajouté avec succès.');
     } catch (error) {
       console.error('Error creating sponsor:', error);

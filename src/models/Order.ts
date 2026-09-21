@@ -150,4 +150,12 @@ OrderSchema.virtual('totalItems').get(function(this: any) {
 OrderSchema.set('toJSON', { virtuals: true });
 OrderSchema.set('toObject', { virtuals: true });
 
+// `.lean()` results skip virtuals, so API routes add totalItems with this helper.
+export function withTotalItems<T extends { items?: Array<{ quantity?: number }> }>(order: T) {
+  return {
+    ...order,
+    totalItems: (order.items || []).reduce((total, item) => total + (item.quantity || 0), 0),
+  };
+}
+
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);

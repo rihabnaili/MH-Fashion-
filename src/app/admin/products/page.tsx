@@ -7,6 +7,9 @@ import { useLanguage } from '@/app/context/LanguageContext';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import { useTranslations } from '@/app/hooks/useTranslations';
 import { Edit, Trash2, LogOut } from 'lucide-react';
+import { getCategoryByValue } from '@/lib/productRoutes';
+
+const PAGE_SIZE = 50;
 
 interface Product {
   _id: string;
@@ -28,24 +31,38 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(page);
+  }, [page]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (pageToLoad: number) => {
+    setIsLoading(true);
+    setLoadError(null);
     try {
-      const response = await fetch('/api/admin/products');
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.data);
+      const response = await fetch(`/api/admin/products?page=${pageToLoad}&limit=${PAGE_SIZE}`);
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || 'Impossible de charger les produits');
       }
+
+      setProducts(data.data);
+      setTotalPages(Math.max(data.pagination?.pages || 1, 1));
+      setTotalProducts(data.pagination?.total ?? data.data.length);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setLoadError(error instanceof Error ? error.message : 'Impossible de charger les produits');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const getCategoryLabel = (value: string) => getCategoryByValue(value)?.label || value;
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
@@ -61,10 +78,13 @@ export default function AdminProducts() {
       if (response.ok) {
         // Remove the product from the list
         setProducts(prev => prev.filter(product => product._id !== productId));
+        setTotalProducts(prev => Math.max(prev - 1, 0));
         alert('Produit supprimé avec succès !');
       } else {
-        const error = await response.json();
-        alert(`Erreur : ${error.message}`);
+        const error = await response.json().catch(() => ({}));
+        alert(`Erreur : ${error.message || response.statusText}${error.error ? `
+
+Détail : ${error.error}` : ''}`);
       }
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -114,7 +134,17 @@ export default function AdminProducts() {
           </div>
         </div>
 
-        {products.length === 0 ? (
+        {loadError ? (
+          <div className="text-center py-12 sm:py-16">
+            <p className="text-red-600 text-lg mb-4">{loadError}</p>
+            <button
+              onClick={() => fetchProducts(page)}
+              className="px-6 py-3 bg-gold text-black rounded-lg hover:bg-yellow-600 transition-colors duration-200 font-medium"
+            >
+              Réessayer
+            </button>
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-12 sm:py-16">
             <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">📦</div>
             <p className="text-gray-500 text-lg sm:text-xl mb-4 sm:mb-6 px-2">
@@ -155,7 +185,7 @@ export default function AdminProducts() {
                           {product.name[lang as keyof typeof product.name]}
                         </h3>
                         <p className="text-sm text-gray-600">TND{product.price.toFixed(2)}</p>
-                        <p className="text-xs text-gray-500">{product.category}</p>
+                        <p className="text-xs text-gray-500">{getCategoryLabel(product.category)}</p>
                       </div>
                     </div>
                     
@@ -254,7 +284,7 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-700">
-                          {product.category}
+                          {getCategoryLabel(product.category)}
                         </div>
                       </td>
                       <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
@@ -297,6 +327,28 @@ export default function AdminProducts() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {!loadError && totalPages > 1 && (
+          <div className="mt-6 sm:mt-8 flex justify-center items-center gap-2 pb-8">
+            <button
+              onClick={() => setPage((current) => current - 1)}
+              disabled={page <= 1}
+              className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base"
+            >
+              Précédent
+            </button>
+            <span className="px-3 sm:px-4 py-2 text-sm text-gray-700">
+              Page {page} sur {totalPages} ({totalProducts} produits)
+            </span>
+            <button
+              onClick={() => setPage((current) => current + 1)}
+              disabled={page >= totalPages}
+              className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base"
+            >
+              Suivant
+            </button>
           </div>
         )}
       </div>
