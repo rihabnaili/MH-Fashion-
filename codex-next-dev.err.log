@@ -1,0 +1,18 @@
+'pnpm' n’est pas reconnu en tant que commande interne
+ou externe, un programme exécutable ou un fichier de commandes.
+Error fetching products: Error: querySrv ENOTFOUND _mongodb._tcp.cluster0.hosllhp.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:291:17)
+    at QueryReqWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+  errno: undefined,
+  code: 'ENOTFOUND',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.cluster0.hosllhp.mongodb.net'
+}
+Database connection error: Error: querySrv ENOTFOUND _mongodb._tcp.cluster0.hosllhp.mongodb.net
+    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:291:17)
+    at QueryReqWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+  errno: undefined,
+  code: 'ENOTFOUND',
+  syscall: 'querySrv',
+  hostname: '_mongodb._tcp.cluster0.hosllhp.mongodb.net'
+}
